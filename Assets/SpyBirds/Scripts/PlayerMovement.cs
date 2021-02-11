@@ -1,18 +1,44 @@
 ﻿using System;
 using UnityEngine;
 
+[RequireComponent(typeof(Rigidbody))]
 public class PlayerMovement : MonoBehaviour
 {
-    // Camera related vars
+    [Header("Camera Options")]
     Camera playerCam;
     Vector3 camLocalResetPos;
     bool freeCam = false;
     [SerializeField]
     float camRotationSpeed = 1.0f;
     [SerializeField]
-    KeyCode toggleFreeCam = KeyCode.Space;
+    KeyCode toggleFreeCam = KeyCode.Tab;
     [SerializeField]
     private bool invertYRotation = true;
+
+    [Header("Movement Options")]
+    // Movement keys
+    [SerializeField]
+    private KeyCode forwardKey = KeyCode.W;
+    [SerializeField]
+    private KeyCode backwardKey = KeyCode.S;
+    [SerializeField]
+    private KeyCode rightKey = KeyCode.D;
+    [SerializeField]
+    private KeyCode leftKey = KeyCode.A;
+
+    // Free camera movement
+    private Rigidbody cameraRb;
+    [SerializeField]
+    private float freeCamAcceleration = 1.0f;
+    [SerializeField]
+    private float freeCamVelCap = 10.0f;
+
+    // Player movement
+    private Rigidbody playerRb;
+    [SerializeField]
+    private float playerAcceleration = 1.0f;
+    [SerializeField]
+    private float playerVelCap = 10.0f;
 
     // Start is called before the first frame update
     void Start()
@@ -24,6 +50,9 @@ public class PlayerMovement : MonoBehaviour
     {
         playerCam = GetComponentInChildren<Camera>();
         camLocalResetPos = playerCam.transform.localPosition;
+        cameraRb = playerCam.GetComponent<Rigidbody>();
+
+        playerRb = this.gameObject.GetComponent<Rigidbody>();
     }
 
     // Update is called once per frame
@@ -36,13 +65,46 @@ public class PlayerMovement : MonoBehaviour
         }
 
         RotateCamera();
-        // MovePlayer();
+
+        if (freeCam)
+        {
+            MovePlayer(cameraRb, freeCamAcceleration, freeCamVelCap);
+        }
+        else
+        {
+            MovePlayer(playerRb, playerAcceleration, playerVelCap);
+        }
 
     }
 
-    private void MovePlayer()
+    private void MovePlayer(Rigidbody rb, float accelaration, float velCap)
     {
-        throw new NotImplementedException();
+        if (Input.GetKey(forwardKey))
+        {
+            rb.velocity += rb.transform.forward * accelaration * Time.deltaTime;
+        }
+        if (Input.GetKey(backwardKey))
+        {
+            rb.velocity += rb.transform.forward * -accelaration * Time.deltaTime;
+        }
+        if (Input.GetKey(rightKey))
+        {
+            rb.velocity += rb.transform.right * accelaration * Time.deltaTime;
+        }
+        if (Input.GetKey(leftKey))
+        {
+            rb.velocity += rb.transform.right * -accelaration * Time.deltaTime;
+        }
+
+        CapVelocity(rb, velCap);
+    }
+
+    private void CapVelocity(Rigidbody rb, float velCap)
+    {
+        Vector3 velDir = rb.velocity.normalized;
+        float newVelMag = Mathf.Clamp(rb.velocity.magnitude, -velCap, velCap);
+
+        rb.velocity = newVelMag * velDir;
     }
 
     private void RotateCamera()
