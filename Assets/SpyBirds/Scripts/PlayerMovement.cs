@@ -7,6 +7,7 @@ public class PlayerMovement : MonoBehaviour
     [Header("Camera Options")]
     Camera playerCam;
     Vector3 camLocalResetPos;
+    private Quaternion camLocalResetRot;
     bool freeCam = false;
     [SerializeField]
     float camRotationSpeed = 1.0f;
@@ -25,6 +26,10 @@ public class PlayerMovement : MonoBehaviour
     private KeyCode rightKey = KeyCode.D;
     [SerializeField]
     private KeyCode leftKey = KeyCode.A;
+    [SerializeField]
+    private KeyCode upKey = KeyCode.Space;
+    [SerializeField]
+    private KeyCode downKey = KeyCode.LeftControl;
 
     // Free camera movement
     private Rigidbody cameraRb;
@@ -40,6 +45,7 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField]
     private float playerVelCap = 10.0f;
 
+
     // Start is called before the first frame update
     void Start()
     {
@@ -50,6 +56,7 @@ public class PlayerMovement : MonoBehaviour
     {
         playerCam = GetComponentInChildren<Camera>();
         camLocalResetPos = playerCam.transform.localPosition;
+        camLocalResetRot = playerCam.transform.localRotation;
         cameraRb = playerCam.GetComponent<Rigidbody>();
 
         playerRb = this.gameObject.GetComponent<Rigidbody>();
@@ -61,7 +68,13 @@ public class PlayerMovement : MonoBehaviour
         if (Input.GetKeyDown(toggleFreeCam))
         {
             freeCam = !freeCam;
-            print(freeCam);
+            cameraRb.isKinematic = !cameraRb.isKinematic;
+
+            if (!freeCam)
+            {
+                playerCam.transform.localPosition = camLocalResetPos;
+                playerCam.transform.localRotation = camLocalResetRot;
+            }
         }
 
         RotateCamera();
@@ -96,6 +109,18 @@ public class PlayerMovement : MonoBehaviour
             rb.velocity += rb.transform.right * -accelaration * Time.deltaTime;
         }
 
+        if (rb == cameraRb)
+        {
+            if (Input.GetKey(upKey))
+            {
+                rb.velocity += Vector3.up * accelaration * Time.deltaTime;
+            }
+            if (Input.GetKey(downKey))
+            {
+                rb.velocity += Vector3.up * -accelaration * Time.deltaTime;
+            }
+        }
+
         CapVelocity(rb, velCap);
     }
 
@@ -124,6 +149,13 @@ public class PlayerMovement : MonoBehaviour
             }
 
             playerCam.transform.localEulerAngles = new Vector3(newYRot, newXRot, 0f);
+        }
+        else
+        {
+            playerCam.transform.RotateAround(transform.position, transform.right, Input.GetAxis("Mouse Y") * camRotationSpeed);
+
+            float newXRot = transform.localEulerAngles.y + Input.GetAxis("Mouse X") * camRotationSpeed;
+            transform.localEulerAngles = new Vector3(transform.localEulerAngles.x, newXRot, transform.localEulerAngles.z);
         }
     }
 }
