@@ -50,6 +50,11 @@ public class Boids : MonoBehaviour
     [Range(0.0f, 1.0f)]
     private float avoidTerrainWeight = 1.0f;
 
+    // Calculated stats.
+    bool flockChanged;
+    Vector3 flockAvgPos;
+    Vector3 flockAvgVel;
+    Vector3 separationVector;
 
     // Start is called before the first frame update
     void Start()
@@ -60,15 +65,13 @@ public class Boids : MonoBehaviour
     private void InitialiseVariables()
     {
         rb = GetComponent<Rigidbody>();
+        rb.useGravity = false;
 
         Vector3 startingVel = new Vector3(Random.value, Random.value, Random.value) * 2;
         startingVel.x -= 1.0f;
         startingVel.y -= 1.0f;
         startingVel.z -= 1.0f;
         rb.velocity = startingVel * Random.Range(1.0f, maxSpeed);
-
-        Debug.Log(rb.velocity);
-        rb.useGravity = false;
 
         sphereCollider = GetComponent<SphereCollider>();
         sphereCollider.radius = awarenessRadius;
@@ -85,11 +88,14 @@ public class Boids : MonoBehaviour
         // Flock behaviour.
         if (knownBoids.Count != 0)
         {
-            Vector3 flockAvgPos = GetFlockAvgPos();
-            Vector3 flockAvgVel = GetFlockAvgVel();
+            if (flockChanged)
+            {
+                GetFlockStats(out flockAvgPos, out flockAvgVel, out separationVector);
+                flockChanged = false;
+            }
 
             newVel += Cohesion(flockAvgPos);
-            newVel += Seperation();
+            newVel += Seperation(separationVector);
             newVel += Alignment(flockAvgVel);
         }
 
@@ -124,32 +130,25 @@ public class Boids : MonoBehaviour
         return newVel;
     }
 
-    private Vector3 GetFlockAvgVel()
+    // Calculates flock average position and velocity.
+    private void GetFlockStats(out Vector3 avgPos, out Vector3 avgVel, out Vector3 separationVector)
     {
-        Vector3 avgVel = new Vector3();
+        avgPos = new Vector3();
+        avgVel = new Vector3();
+        separationVector = new Vector3();
 
-        if (knownBoids.Count == 0) return avgVel;
+        if (knownBoids.Count == 0) return;
 
         foreach (Rigidbody item in knownBoids)
         {
             avgVel += item.velocity;
-        }
-
-        return avgVel / knownBoids.Count;
-    }
-
-    private Vector3 GetFlockAvgPos()
-    {
-        Vector3 avgPos = new Vector3();
-
-        if (knownBoids.Count == 0) return avgPos;
-
-        foreach (Rigidbody item in knownBoids)
-        {
             avgPos += item.transform.position;
+            separationVector += AvoidPoint(item.transform.position);
         }
 
-        return avgPos / knownBoids.Count;
+        avgPos /= knownBoids.Count;
+        avgVel /= knownBoids.Count;
+        // separationVector /= knownBoids.Count;
     }
 
     private Vector3 Target()
@@ -166,18 +165,9 @@ public class Boids : MonoBehaviour
         return (avgVel - rb.velocity).normalized * alignmentWeight;
     }
 
-    private Vector3 Seperation()
+    private Vector3 Seperation(Vector3 separationVector)
     {
-        Vector3 seperationVector = new Vector3();
-
-        if (knownBoids.Count == 0) return seperationVector;
-
-        foreach (Rigidbody item in knownBoids)
-        {
-            seperationVector += AvoidPoint(item.transform.position);
-        }
-
-        return seperationVector * seperationWeight;
+        return separationVector * seperationWeight;
     }
 
     private Vector3 AvoidPoint(Vector3 posToAvoid)
@@ -205,6 +195,7 @@ public class Boids : MonoBehaviour
         if (other.CompareTag("Boid"))
         {
             knownBoids.Add(other.GetComponent<Rigidbody>());
+            flockChanged = true;
         }
         else
         {
@@ -216,6 +207,7 @@ public class Boids : MonoBehaviour
     {
         if (other.CompareTag("Boid"))
         {
+            flockChanged = true;
             knownBoids.Remove(other.GetComponent<Rigidbody>());
         }
         else
@@ -226,18 +218,18 @@ public class Boids : MonoBehaviour
 
     private void OnDrawGizmosSelected()
     {
-        if (debugMode)
-        {
-            Gizmos.DrawWireSphere(transform.position, awarenessRadius);
+        // if (debugMode)
+        // {
+        //     Gizmos.DrawWireSphere(transform.position, awarenessRadius);
 
-            Gizmos.color = Color.red;
-            Gizmos.DrawSphere(Target() + transform.position, targetWeight);
+        //     Gizmos.color = Color.red;
+        //     Gizmos.DrawSphere(Target() + transform.position, targetWeight);
 
-            Gizmos.color = Color.green;
-            Gizmos.DrawSphere(Cohesion(GetFlockAvgPos()) + transform.position, cohesionWeight);
+        //     Gizmos.color = Color.green;
+        //     Gizmos.DrawSphere(Cohesion(GetFlockAvgPos()) + transform.position, cohesionWeight);
 
-            Gizmos.color = Color.yellow;
-            Gizmos.DrawSphere(Seperation() + transform.position, seperationWeight);
-        }
+        //     Gizmos.color = Color.yellow;
+        //     Gizmos.DrawSphere(Seperation() + transform.position, seperationWeight);
+        // }
     }
 }

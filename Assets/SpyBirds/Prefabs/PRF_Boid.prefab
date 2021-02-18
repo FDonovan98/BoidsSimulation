@@ -146,6 +146,6 @@ MonoBehaviour:
   seperationDistance: 6
   targetWeight: 0.58
   cohesionWeight: 0.35
-  seperationWeight: 0.27
+  seperationWeight: 0.539
   alignmentWeight: 0.3
   avoidTerrainWeight: 1
