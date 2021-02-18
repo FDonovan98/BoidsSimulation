@@ -20,6 +20,7 @@ public class Boids : MonoBehaviour
     [SerializeField]
     private float awarenessRadius = 10.0f;
     private List<Rigidbody> knownBoids = new List<Rigidbody>();
+    private List<Collider> knownObstacles = new List<Collider>();
 
     [Header("Movement")]
     [SerializeField]
@@ -45,6 +46,8 @@ public class Boids : MonoBehaviour
     [SerializeField]
     [Range(0.0f, 1.0f)]
     private float alignmentWeight = 1.0f;
+    [SerializeField]
+    private float avoidTerrainWeight = 1.0f;
 
 
     // Start is called before the first frame update
@@ -81,10 +84,26 @@ public class Boids : MonoBehaviour
             newVel += Alignment(flockAvgVel);
         }
 
+        if (knownObstacles.Count != 0)
+        {
+            newVel += AvoidTerrain();
+        }
+
         // Sets velocity to limited newVel
         rb.velocity = ApplyVelLimits(newVel);
 
         transform.up = rb.velocity.normalized;
+    }
+
+    private Vector3 AvoidTerrain()
+    {
+        Vector3 avoidanceVector = new Vector3();
+        foreach (Collider item in knownObstacles)
+        {
+            avoidanceVector += AvoidPoint(item.ClosestPoint(transform.position));
+        }
+
+        return avoidanceVector.normalized * avoidTerrainWeight;
     }
 
     private Vector3 ApplyVelLimits(Vector3 newVel)
@@ -143,16 +162,25 @@ public class Boids : MonoBehaviour
 
         foreach (Rigidbody item in knownBoids)
         {
-            float dist = Vector3.Distance(item.transform.position, transform.position);
-
-            if (dist < seperationDistance)
-            {
-                // Equation is gained through trial and error.
-                seperationVector += (transform.position - item.transform.position) * (seperationDistance - dist);
-            }
+            seperationVector += AvoidPoint(item.transform.position);
         }
 
         return seperationVector * seperationWeight;
+    }
+
+    private Vector3 AvoidPoint(Vector3 posToAvoid)
+    {
+        float dist = Vector3.Distance(posToAvoid, transform.position);
+
+        if (dist < seperationDistance)
+        {
+            // Equation is gained through trial and error.
+            // return (transform.position - posToAvoid) * (seperationDistance - dist);
+
+            return (transform.position - posToAvoid) / Mathf.Pow(dist, 2);
+        }
+
+        return Vector3.zero;
     }
 
     private Vector3 Cohesion(Vector3 avgPos)
@@ -166,6 +194,10 @@ public class Boids : MonoBehaviour
         {
             knownBoids.Add(other.GetComponent<Rigidbody>());
         }
+        else
+        {
+            knownObstacles.Add(other);
+        }
     }
 
     private void OnTriggerExit(Collider other)
@@ -173,6 +205,10 @@ public class Boids : MonoBehaviour
         if (other.CompareTag("Boid"))
         {
             knownBoids.Remove(other.GetComponent<Rigidbody>());
+        }
+        else
+        {
+            knownObstacles.Remove(other);
         }
     }
 
