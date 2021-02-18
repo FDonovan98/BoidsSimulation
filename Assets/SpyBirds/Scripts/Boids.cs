@@ -47,6 +47,7 @@ public class Boids : MonoBehaviour
     [Range(0.0f, 1.0f)]
     private float alignmentWeight = 1.0f;
     [SerializeField]
+    [Range(0.0f, 1.0f)]
     private float avoidTerrainWeight = 1.0f;
 
 
@@ -73,17 +74,20 @@ public class Boids : MonoBehaviour
     {
         Vector3 newVel = new Vector3();
 
+        newVel += Target();
+
+        // Flock behaviour.
         if (knownBoids.Count != 0)
         {
             Vector3 flockAvgPos = GetFlockAvgPos();
             Vector3 flockAvgVel = GetFlockAvgVel();
 
-            newVel += Target(flockAvgPos, flockAvgVel);
             newVel += Cohesion(flockAvgPos);
             newVel += Seperation();
             newVel += Alignment(flockAvgVel);
         }
 
+        // Obstacle avoidance.
         if (knownObstacles.Count != 0)
         {
             newVel += AvoidTerrain();
@@ -142,11 +146,13 @@ public class Boids : MonoBehaviour
         return avgPos / knownBoids.Count;
     }
 
-    private Vector3 Target(Vector3 avgPos, Vector3 avgVel)
+    private Vector3 Target()
     {
-        Vector3 target = avgPos + avgVel;
-        target -= transform.position;
-        return target * targetWeight;
+        // Vector3 target = avgPos + avgVel;
+        // target -= transform.position;
+        // return target * targetWeight;
+
+        return rb.velocity.normalized * maxSpeed * targetWeight;
     }
 
     private Vector3 Alignment(Vector3 avgVel)
@@ -219,7 +225,7 @@ public class Boids : MonoBehaviour
             Gizmos.DrawWireSphere(transform.position, awarenessRadius);
 
             Gizmos.color = Color.red;
-            Gizmos.DrawSphere(Target(GetFlockAvgPos(), GetFlockAvgVel()) + transform.position, targetWeight);
+            Gizmos.DrawSphere(Target() + transform.position, targetWeight);
 
             Gizmos.color = Color.green;
             Gizmos.DrawSphere(Cohesion(GetFlockAvgPos()) + transform.position, cohesionWeight);

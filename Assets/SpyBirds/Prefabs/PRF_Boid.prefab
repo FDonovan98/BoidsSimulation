@@ -138,4 +138,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c425e448b5393d448b51635cd75a37de, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  awarenessRadius: 0
+  debugMode: 0
+  awarenessRadius: 10
+  maxSpeed: 6
+  turnRate: 60
+  acceleration: 2
+  seperationDistance: 6
+  targetWeight: 0.58
+  cohesionWeight: 0.35
+  seperationWeight: 0.27
+  alignmentWeight: 0.3
+  avoidTerrainWeight: 1
