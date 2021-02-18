@@ -60,7 +60,13 @@ public class Boids : MonoBehaviour
     private void InitialiseVariables()
     {
         rb = GetComponent<Rigidbody>();
-        rb.velocity = new Vector3(Random.value, Random.value, Random.value) * Random.Range(1.0f, maxSpeed);
+
+        Vector3 startingVel = new Vector3(Random.value, Random.value, Random.value) * 2;
+        startingVel.x -= 1.0f;
+        startingVel.y -= 1.0f;
+        startingVel.z -= 1.0f;
+        rb.velocity = startingVel * Random.Range(1.0f, maxSpeed);
+
         Debug.Log(rb.velocity);
         rb.useGravity = false;
 
