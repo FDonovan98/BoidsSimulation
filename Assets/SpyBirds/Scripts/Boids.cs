@@ -12,6 +12,8 @@ using UnityEngine;
 
 public class Boids : MonoBehaviour
 {
+    [SerializeField]
+    private bool debugMode;
     [Header("Detection")]
     Rigidbody rb;
     SphereCollider sphereCollider;
@@ -23,7 +25,10 @@ public class Boids : MonoBehaviour
     [SerializeField]
     float maxSpeed = 10.0f;
     [SerializeField]
+    [Tooltip("The turn rate of the boid in degrees per second")]
     float turnRate = 1.0f;
+    [SerializeField]
+    float acceleration = 1.0f;
 
     [Header("Flock Behaviour")]
     [SerializeField]
@@ -76,12 +81,18 @@ public class Boids : MonoBehaviour
             newVel += Alignment(flockAvgVel);
         }
 
-        // Cap velocity to maxSpeed variable.
-        newVel = newVel.normalized * Mathf.Clamp(newVel.magnitude, -maxSpeed, maxSpeed);
-
-        rb.velocity = newVel;
+        // Sets velocity to limited newVel
+        rb.velocity = ApplyVelLimits(newVel);
 
         transform.up = rb.velocity.normalized;
+    }
+
+    private Vector3 ApplyVelLimits(Vector3 newVel)
+    {
+        newVel = newVel.normalized * Mathf.Clamp(newVel.magnitude, -maxSpeed, maxSpeed);
+        newVel = Vector3.RotateTowards(rb.velocity, newVel, turnRate * Mathf.Deg2Rad * Time.deltaTime, acceleration * Time.deltaTime);
+
+        return newVel;
     }
 
     private Vector3 GetFlockAvgVel()
@@ -167,15 +178,18 @@ public class Boids : MonoBehaviour
 
     private void OnDrawGizmosSelected()
     {
-        Gizmos.DrawWireSphere(transform.position, awarenessRadius);
+        if (debugMode)
+        {
+            Gizmos.DrawWireSphere(transform.position, awarenessRadius);
 
-        Gizmos.color = Color.red;
-        Gizmos.DrawSphere(Target(GetFlockAvgPos(), GetFlockAvgVel()) + transform.position, targetWeight);
+            Gizmos.color = Color.red;
+            Gizmos.DrawSphere(Target(GetFlockAvgPos(), GetFlockAvgVel()) + transform.position, targetWeight);
 
-        Gizmos.color = Color.green;
-        Gizmos.DrawSphere(Cohesion(GetFlockAvgPos()) + transform.position, cohesionWeight);
+            Gizmos.color = Color.green;
+            Gizmos.DrawSphere(Cohesion(GetFlockAvgPos()) + transform.position, cohesionWeight);
 
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawSphere(Seperation() + transform.position, seperationWeight);
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawSphere(Seperation() + transform.position, seperationWeight);
+        }
     }
 }
