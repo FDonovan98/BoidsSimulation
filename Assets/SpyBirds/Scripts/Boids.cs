@@ -141,9 +141,10 @@ public class Boids : MonoBehaviour
 
         foreach (Rigidbody item in knownBoids)
         {
+            Vector3 itemPos = item.transform.position;
             avgVel += item.velocity;
-            avgPos += item.transform.position;
-            separationVector += AvoidPoint(item.transform.position);
+            avgPos += itemPos;
+            separationVector += AvoidPoint(itemPos);
         }
 
         avgPos /= knownBoids.Count;
@@ -172,14 +173,15 @@ public class Boids : MonoBehaviour
 
     private Vector3 AvoidPoint(Vector3 posToAvoid)
     {
-        float dist = Vector3.Distance(posToAvoid, transform.position);
+        Vector3 pos = transform.position;
+        float dist = Vector3.Distance(posToAvoid, pos);
 
         if (dist < seperationDistance)
         {
             // Equation is gained through trial and error.
             // return (transform.position - posToAvoid) * (seperationDistance - dist);
 
-            return (transform.position - posToAvoid) / Mathf.Pow(dist, 2);
+            return (pos - posToAvoid) / Mathf.Pow(dist, 2);
         }
 
         return Vector3.zero;
