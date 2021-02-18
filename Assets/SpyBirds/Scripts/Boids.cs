@@ -37,6 +37,9 @@ public class Boids : MonoBehaviour
     [SerializeField]
     [Range(0.0f, 1.0f)]
     private float seperationWeight = 1.0f;
+    [SerializeField]
+    [Range(0.0f, 1.0f)]
+    private float alignmentWeight = 1.0f;
 
 
     // Start is called before the first frame update
@@ -61,10 +64,17 @@ public class Boids : MonoBehaviour
     void Update()
     {
         Vector3 newVel = new Vector3();
-        newVel += Target();
-        newVel += Cohesion();
-        newVel += Seperation();
-        // Alignment();
+
+        if (knownBoids.Count != 0)
+        {
+            Vector3 flockAvgPos = GetFlockAvgPos();
+            Vector3 flockAvgVel = GetFlockAvgVel();
+
+            newVel += Target(flockAvgPos, flockAvgVel);
+            newVel += Cohesion(flockAvgPos);
+            newVel += Seperation();
+            newVel += Alignment(flockAvgVel);
+        }
 
         // Cap velocity to maxSpeed variable.
         newVel = newVel.normalized * Mathf.Clamp(newVel.magnitude, -maxSpeed, maxSpeed);
@@ -74,14 +84,44 @@ public class Boids : MonoBehaviour
         transform.up = rb.velocity.normalized;
     }
 
-    private Vector3 Target()
+    private Vector3 GetFlockAvgVel()
     {
-        return Vector3.forward * maxSpeed * targetWeight;
+        Vector3 avgVel = new Vector3();
+
+        if (knownBoids.Count == 0) return avgVel;
+
+        foreach (Rigidbody item in knownBoids)
+        {
+            avgVel += item.velocity;
+        }
+
+        return avgVel / knownBoids.Count;
     }
 
-    private void Alignment()
+    private Vector3 GetFlockAvgPos()
     {
-        throw new System.NotImplementedException();
+        Vector3 avgPos = new Vector3();
+
+        if (knownBoids.Count == 0) return avgPos;
+
+        foreach (Rigidbody item in knownBoids)
+        {
+            avgPos += item.transform.position;
+        }
+
+        return avgPos / knownBoids.Count;
+    }
+
+    private Vector3 Target(Vector3 avgPos, Vector3 avgVel)
+    {
+        Vector3 target = avgPos + avgVel;
+        target -= transform.position;
+        return target * targetWeight;
+    }
+
+    private Vector3 Alignment(Vector3 avgVel)
+    {
+        return (avgVel - rb.velocity).normalized * alignmentWeight;
     }
 
     private Vector3 Seperation()
@@ -96,8 +136,7 @@ public class Boids : MonoBehaviour
 
             if (dist < seperationDistance)
             {
-                // Using 1/r^2 as initial calculation. 
-                // Equation is from reference material, otherwise arbitry.
+                // Equation is gained through trial and error.
                 seperationVector += (transform.position - item.transform.position) * (seperationDistance - dist);
             }
         }
@@ -105,19 +144,8 @@ public class Boids : MonoBehaviour
         return seperationVector * seperationWeight;
     }
 
-    private Vector3 Cohesion()
+    private Vector3 Cohesion(Vector3 avgPos)
     {
-        Vector3 avgPos = new Vector3();
-
-        if (knownBoids.Count == 0) return avgPos;
-
-        foreach (Rigidbody item in knownBoids)
-        {
-            avgPos += item.transform.position;
-        }
-
-        avgPos /= knownBoids.Count;
-
         return (avgPos - transform.position) * cohesionWeight;
     }
 
@@ -140,5 +168,14 @@ public class Boids : MonoBehaviour
     private void OnDrawGizmosSelected()
     {
         Gizmos.DrawWireSphere(transform.position, awarenessRadius);
+
+        Gizmos.color = Color.red;
+        Gizmos.DrawSphere(Target(GetFlockAvgPos(), GetFlockAvgVel()) + transform.position, targetWeight);
+
+        Gizmos.color = Color.green;
+        Gizmos.DrawSphere(Cohesion(GetFlockAvgPos()) + transform.position, cohesionWeight);
+
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawSphere(Seperation() + transform.position, seperationWeight);
     }
 }

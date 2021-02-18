@@ -186,12 +186,32 @@ PrefabInstance:
     - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
         type: 3}
       propertyPath: targetWeight
-      value: 0.1
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
+        type: 3}
+      propertyPath: cohesionWeight
+      value: 0.35
+      objectReference: {fileID: 0}
+    - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
+        type: 3}
+      propertyPath: alignmentWeight
+      value: 0.61
       objectReference: {fileID: 0}
     - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
         type: 3}
       propertyPath: awarenessRadius
       value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
+        type: 3}
+      propertyPath: seperationWeight
+      value: 0.27
+      objectReference: {fileID: 0}
+    - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
+        type: 3}
+      propertyPath: seperationDistance
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 7212746578717795957, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
         type: 3}
@@ -276,12 +296,32 @@ PrefabInstance:
     - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
         type: 3}
       propertyPath: targetWeight
-      value: 0.1
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
+        type: 3}
+      propertyPath: cohesionWeight
+      value: 0.35
+      objectReference: {fileID: 0}
+    - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
+        type: 3}
+      propertyPath: alignmentWeight
+      value: 0.61
       objectReference: {fileID: 0}
     - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
         type: 3}
       propertyPath: awarenessRadius
       value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
+        type: 3}
+      propertyPath: seperationWeight
+      value: 0.27
+      objectReference: {fileID: 0}
+    - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
+        type: 3}
+      propertyPath: seperationDistance
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 7212746578717795957, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
         type: 3}
@@ -360,12 +400,32 @@ PrefabInstance:
     - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
         type: 3}
       propertyPath: targetWeight
-      value: 0.1
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
+        type: 3}
+      propertyPath: cohesionWeight
+      value: 0.35
+      objectReference: {fileID: 0}
+    - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
+        type: 3}
+      propertyPath: alignmentWeight
+      value: 0.61
       objectReference: {fileID: 0}
     - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
         type: 3}
       propertyPath: awarenessRadius
       value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
+        type: 3}
+      propertyPath: seperationWeight
+      value: 0.27
+      objectReference: {fileID: 0}
+    - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
+        type: 3}
+      propertyPath: seperationDistance
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 7212746578717795957, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
         type: 3}
@@ -456,12 +516,32 @@ PrefabInstance:
     - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
         type: 3}
       propertyPath: targetWeight
-      value: 0.1
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
+        type: 3}
+      propertyPath: cohesionWeight
+      value: 0.35
+      objectReference: {fileID: 0}
+    - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
+        type: 3}
+      propertyPath: alignmentWeight
+      value: 0.61
       objectReference: {fileID: 0}
     - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
         type: 3}
       propertyPath: awarenessRadius
       value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
+        type: 3}
+      propertyPath: seperationWeight
+      value: 0.27
+      objectReference: {fileID: 0}
+    - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
+        type: 3}
+      propertyPath: seperationDistance
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 7212746578717795957, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
         type: 3}
@@ -656,12 +736,32 @@ PrefabInstance:
     - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
         type: 3}
       propertyPath: targetWeight
-      value: 0.1
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
+        type: 3}
+      propertyPath: cohesionWeight
+      value: 0.35
+      objectReference: {fileID: 0}
+    - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
+        type: 3}
+      propertyPath: alignmentWeight
+      value: 0.61
       objectReference: {fileID: 0}
     - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
         type: 3}
       propertyPath: awarenessRadius
       value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
+        type: 3}
+      propertyPath: seperationWeight
+      value: 0.27
+      objectReference: {fileID: 0}
+    - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
+        type: 3}
+      propertyPath: seperationDistance
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 7212746578717795957, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
         type: 3}
@@ -740,12 +840,32 @@ PrefabInstance:
     - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
         type: 3}
       propertyPath: targetWeight
-      value: 0.1
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
+        type: 3}
+      propertyPath: cohesionWeight
+      value: 0.35
+      objectReference: {fileID: 0}
+    - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
+        type: 3}
+      propertyPath: alignmentWeight
+      value: 0.61
       objectReference: {fileID: 0}
     - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
         type: 3}
       propertyPath: awarenessRadius
       value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
+        type: 3}
+      propertyPath: seperationWeight
+      value: 0.27
+      objectReference: {fileID: 0}
+    - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
+        type: 3}
+      propertyPath: seperationDistance
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 7212746578717795957, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
         type: 3}
@@ -883,12 +1003,32 @@ PrefabInstance:
     - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
         type: 3}
       propertyPath: targetWeight
-      value: 0.1
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
+        type: 3}
+      propertyPath: cohesionWeight
+      value: 0.35
+      objectReference: {fileID: 0}
+    - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
+        type: 3}
+      propertyPath: alignmentWeight
+      value: 0.61
       objectReference: {fileID: 0}
     - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
         type: 3}
       propertyPath: awarenessRadius
       value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
+        type: 3}
+      propertyPath: seperationWeight
+      value: 0.27
+      objectReference: {fileID: 0}
+    - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
+        type: 3}
+      propertyPath: seperationDistance
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 7212746578717795957, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
         type: 3}
@@ -1036,12 +1176,32 @@ PrefabInstance:
     - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
         type: 3}
       propertyPath: targetWeight
-      value: 0.1
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
+        type: 3}
+      propertyPath: cohesionWeight
+      value: 0.35
+      objectReference: {fileID: 0}
+    - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
+        type: 3}
+      propertyPath: alignmentWeight
+      value: 0.61
       objectReference: {fileID: 0}
     - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
         type: 3}
       propertyPath: awarenessRadius
       value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
+        type: 3}
+      propertyPath: seperationWeight
+      value: 0.27
+      objectReference: {fileID: 0}
+    - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
+        type: 3}
+      propertyPath: seperationDistance
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 7212746578717795957, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
         type: 3}
@@ -1120,12 +1280,32 @@ PrefabInstance:
     - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
         type: 3}
       propertyPath: targetWeight
-      value: 0.1
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
+        type: 3}
+      propertyPath: cohesionWeight
+      value: 0.35
+      objectReference: {fileID: 0}
+    - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
+        type: 3}
+      propertyPath: alignmentWeight
+      value: 0.61
       objectReference: {fileID: 0}
     - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
         type: 3}
       propertyPath: awarenessRadius
       value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
+        type: 3}
+      propertyPath: seperationWeight
+      value: 0.27
+      objectReference: {fileID: 0}
+    - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
+        type: 3}
+      propertyPath: seperationDistance
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 7212746578717795957, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
         type: 3}
@@ -1175,7 +1355,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1922192869}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 510.69482, y: 7.444168, z: 507.20767}
+  m_LocalPosition: {x: 510.69482, y: 59.8, z: 507.20767}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 925537873}
@@ -1257,12 +1437,32 @@ PrefabInstance:
     - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
         type: 3}
       propertyPath: targetWeight
-      value: 0.1
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
+        type: 3}
+      propertyPath: cohesionWeight
+      value: 0.35
+      objectReference: {fileID: 0}
+    - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
+        type: 3}
+      propertyPath: alignmentWeight
+      value: 0.61
       objectReference: {fileID: 0}
     - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
         type: 3}
       propertyPath: awarenessRadius
       value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
+        type: 3}
+      propertyPath: seperationWeight
+      value: 0.27
+      objectReference: {fileID: 0}
+    - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
+        type: 3}
+      propertyPath: seperationDistance
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 7212746578717795957, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
         type: 3}
@@ -1347,12 +1547,32 @@ PrefabInstance:
     - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
         type: 3}
       propertyPath: targetWeight
-      value: 0.1
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
+        type: 3}
+      propertyPath: cohesionWeight
+      value: 0.35
+      objectReference: {fileID: 0}
+    - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
+        type: 3}
+      propertyPath: alignmentWeight
+      value: 0.61
       objectReference: {fileID: 0}
     - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
         type: 3}
       propertyPath: awarenessRadius
       value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
+        type: 3}
+      propertyPath: seperationWeight
+      value: 0.27
+      objectReference: {fileID: 0}
+    - target: {fileID: 4855707085686119793, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
+        type: 3}
+      propertyPath: seperationDistance
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 7212746578717795957, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
         type: 3}
