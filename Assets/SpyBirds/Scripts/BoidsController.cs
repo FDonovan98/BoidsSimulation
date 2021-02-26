@@ -138,7 +138,14 @@ public class BoidsController : MonoBehaviour
         // Update new partition, adding boid to id list.
         // Notify subscribed boidData partitions have updated
         boidData[boidID].m_partitionID = partitionID;
-        partitions[newPartition.x, newPartition.y, newPartition.z].UpdateData(boidData, boidID, false);
+        if (partitions[newPartition.x, newPartition.y, newPartition.z] == null)
+        {
+            partitions[newPartition.x, newPartition.y, newPartition.z] = new PartitionData(boidData, boidID);
+        }
+        else
+        {
+            partitions[newPartition.x, newPartition.y, newPartition.z].UpdateData(boidData, boidID, false);
+        }
         notifyBoidsPartitionUpdate(partitions[newPartition.x, newPartition.y, newPartition.z]);
     }
 
