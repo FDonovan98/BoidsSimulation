@@ -11,15 +11,15 @@ public class BoidsController : MonoBehaviour
 {
     [Header("Boid List")]
     [SerializeField]
-    const int maxBoids = 300;
+    const int maxBoids = 1500;
     List<int> availableIndex = new List<int>();
-    BoidData[] boidData = new BoidData[300];
+    BoidData[] boidData = new BoidData[maxBoids];
 
     [Header("Partition")]
     [SerializeField]
-    float partitionLength = 10.0f;
+    float partitionLength = 20.0f;
     [SerializeField]
-    const int partitionNumber = 10;
+    const int partitionNumber = 70;
     PartitionData[,,] partitions = new PartitionData[partitionNumber, partitionNumber, partitionNumber];
 
     // Update flock values delegate.
