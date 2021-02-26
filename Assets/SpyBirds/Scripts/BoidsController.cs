@@ -5,6 +5,7 @@
 // Description: Controller class for boid flocks. Should handle spatial partitioning.
 
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 
 public class BoidsController : MonoBehaviour
@@ -41,11 +42,7 @@ public class BoidsController : MonoBehaviour
     // Will need to call notifyBoidsPartitionUpdate for each updatePartitionQueue.
     private void Update()
     {
-        foreach (UpdatePartitionQueue item in updatePartitionIndex)
-        {
-            partitions[item.m_partitionID.x, item.m_partitionID.y, item.m_partitionID.z].UpdateIDList(item.m_boidID, item.m_removeID);
-        }
-        updatePartitionIndex = new List<UpdatePartitionQueue>();
+        UpdatePartitionIDLists();
 
         foreach (UpdatePartitionQueue item in updatePartitionQueue)
         {
@@ -55,6 +52,18 @@ public class BoidsController : MonoBehaviour
         }
 
         updatePartitionQueue = new List<UpdatePartitionQueue>();
+    }
+
+    private async void UpdatePartitionIDLists()
+    {
+        await Task.Run(() =>
+        {
+            foreach (UpdatePartitionQueue item in updatePartitionIndex)
+            {
+                partitions[item.m_partitionID.x, item.m_partitionID.y, item.m_partitionID.z].UpdateIDList(item.m_boidID, item.m_removeID);
+            }
+            updatePartitionIndex = new List<UpdatePartitionQueue>();
+        });
     }
 
     // Called by boidData to register themselves with the BoidController.
