@@ -26,7 +26,7 @@ public class BoidsController : MonoBehaviour
     public delegate void NotifyBoidsPartitionUpdate(PartitionData partitionData);
     public NotifyBoidsPartitionUpdate notifyBoidsPartitionUpdate;
 
-    private void Start()
+    private void Awake()
     {
         for (int i = 0; i < maxBoids; i++)
         {
@@ -61,8 +61,19 @@ public class BoidsController : MonoBehaviour
         // On initialisation boid cannot be unregistered for partitionData ID list as it has not yet been added to any.
         if (isInitialisation)
         {
+            Debug.Log("initial part ids: " + partition);
             // This should be refactored into a standalone function as is duplicated code.
-            partitions[partition.x, partition.y, partition.z] = new PartitionData(boidData, boidID);
+            if (partitions[partition.x, partition.y, partition.z] == null)
+            {
+                partitions[partition.x, partition.y, partition.z] = new PartitionData(boidData, boidID);
+            }
+            else
+            {
+                partitions[partition.x, partition.y, partition.z].UpdateData(boidData);
+                notifyBoidsPartitionUpdate(partitions[partition.x, partition.y, partition.z]);
+                return;
+            }
+
             notifyBoidsPartitionUpdate(partitions[partition.x, partition.y, partition.z]);
         }
         else
@@ -114,6 +125,8 @@ public class BoidsController : MonoBehaviour
         // Notify subscribed boidData partitions have updated
 
         // This should be refactored into a standalone function as is duplicated code.
+        Debug.Log(partitions[partitionID.x, partitionID.y, partitionID.z]);
+        Debug.Log(partitionID);
         partitions[partitionID.x, partitionID.y, partitionID.z].UpdateData(boidData, boidID, true);
         notifyBoidsPartitionUpdate(partitions[partitionID.x, partitionID.y, partitionID.z]);
 

@@ -102,10 +102,8 @@ public class Boids : MonoBehaviour
                 separationVector = new Vector3();
                 foreach (Vector3 otherBoidPos in partitionData.flockValues.m_posArray)
                 {
-                    Debug.Log("ran");
                     separationVector += AvoidPoint(otherBoidPos);
                 }
-                Debug.Log(separationVector);
                 return;
             }
         }
@@ -114,28 +112,21 @@ public class Boids : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        Debug.Log(this.name);
-        Debug.Log(flockValues.m_avgPos);
-        Debug.Log(flockValues.m_avgVel);
         Vector3 newVel = new Vector3();
 
         newVel += Target();
-        Debug.Log(newVel);
+
         // Flock behaviour.
         newVel += Cohesion(flockValues.m_avgPos);
-        Debug.Log(newVel);
-        Debug.Log(separationVector);
         newVel += Seperation(separationVector);
-        Debug.Log(newVel);
         newVel += Alignment(flockValues.m_avgVel);
-        Debug.Log(newVel);
 
         // Obstacle avoidance.
         if (knownObstacles.Count != 0)
         {
             newVel += AvoidTerrain();
         }
-        Debug.Log(newVel);
+
         // Sets velocity to limited newVel
         rb.velocity = ApplyVelLimits(newVel);
 
