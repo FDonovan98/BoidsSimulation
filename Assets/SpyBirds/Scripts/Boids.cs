@@ -19,7 +19,6 @@ public class Boids : MonoBehaviour
     SphereCollider sphereCollider;
     [SerializeField]
     private float awarenessRadius = 10.0f;
-    private List<Rigidbody> knownBoids = new List<Rigidbody>();
     private List<Collider> knownObstacles = new List<Collider>();
 
     [Header("Movement")]
@@ -51,19 +50,29 @@ public class Boids : MonoBehaviour
     private float avoidTerrainWeight = 1.0f;
 
     // Calculated stats.
-    bool flockChanged;
-    Vector3 flockAvgPos;
-    Vector3 flockAvgVel;
+    BoidsController boidsController;
+    int id;
+    FlockValues flockValues;
     Vector3 separationVector;
+    // The distance the boid should cover before reporting it's updated position to the BoidController.
+    float updateDistance;
+    float distanceTravelled = 0.0f;
+    Vector3 lastPos;
 
     // Start is called before the first frame update
     void Start()
     {
         InitialiseVariables();
+
+        boidsController.notifyBoidsPartitionUpdate += FlockValuesUpdated;
+        id = boidsController.RegisterBoid(rb, out updateDistance);
     }
 
     private void InitialiseVariables()
     {
+        boidsController = transform.parent.GetComponent<BoidsController>();
+        lastPos = transform.position;
+
         rb = GetComponent<Rigidbody>();
         rb.useGravity = false;
 
@@ -78,37 +87,68 @@ public class Boids : MonoBehaviour
         sphereCollider.isTrigger = true;
     }
 
+    // Check if boid id is in list of applicable ids.
+    // If it is update flock values.
+    void FlockValuesUpdated(PartitionData partitionData)
+    {
+        foreach (int relevantID in partitionData.boidIDs)
+        {
+            if (id == relevantID)
+            {
+                // Update stored flock values.
+                flockValues = partitionData.flockValues;
+
+                // Recalculate separationVector now that the flockValues have changed.
+                separationVector = new Vector3();
+                foreach (Vector3 otherBoidPos in partitionData.flockValues.m_posArray)
+                {
+                    Debug.Log("ran");
+                    separationVector += AvoidPoint(otherBoidPos);
+                }
+                Debug.Log(separationVector);
+                return;
+            }
+        }
+    }
+
     // Update is called once per frame
     void Update()
     {
+        Debug.Log(this.name);
+        Debug.Log(flockValues.m_avgPos);
+        Debug.Log(flockValues.m_avgVel);
         Vector3 newVel = new Vector3();
 
         newVel += Target();
-
+        Debug.Log(newVel);
         // Flock behaviour.
-        if (knownBoids.Count != 0)
-        {
-            if (flockChanged)
-            {
-                GetFlockStats(out flockAvgPos, out flockAvgVel, out separationVector);
-                flockChanged = false;
-            }
-
-            newVel += Cohesion(flockAvgPos);
-            newVel += Seperation(separationVector);
-            newVel += Alignment(flockAvgVel);
-        }
+        newVel += Cohesion(flockValues.m_avgPos);
+        Debug.Log(newVel);
+        Debug.Log(separationVector);
+        newVel += Seperation(separationVector);
+        Debug.Log(newVel);
+        newVel += Alignment(flockValues.m_avgVel);
+        Debug.Log(newVel);
 
         // Obstacle avoidance.
         if (knownObstacles.Count != 0)
         {
             newVel += AvoidTerrain();
         }
-
+        Debug.Log(newVel);
         // Sets velocity to limited newVel
         rb.velocity = ApplyVelLimits(newVel);
 
         transform.up = rb.velocity.normalized;
+
+        // Update distance travelled.
+        distanceTravelled += Vector3.Distance(transform.position, lastPos);
+        lastPos = transform.position;
+        if (distanceTravelled > updateDistance)
+        {
+            distanceTravelled = 0.0f;
+            boidsController.UpdateBoidPos(id);
+        }
     }
 
     private Vector3 AvoidTerrain()
@@ -128,28 +168,6 @@ public class Boids : MonoBehaviour
         newVel = Vector3.RotateTowards(rb.velocity, newVel, turnRate * Mathf.Deg2Rad * Time.deltaTime, acceleration * Time.deltaTime);
 
         return newVel;
-    }
-
-    // Calculates flock average position and velocity.
-    private void GetFlockStats(out Vector3 avgPos, out Vector3 avgVel, out Vector3 separationVector)
-    {
-        avgPos = new Vector3();
-        avgVel = new Vector3();
-        separationVector = new Vector3();
-
-        if (knownBoids.Count == 0) return;
-
-        foreach (Rigidbody item in knownBoids)
-        {
-            Vector3 itemPos = item.transform.position;
-            avgVel += item.velocity;
-            avgPos += itemPos;
-            separationVector += AvoidPoint(itemPos);
-        }
-
-        avgPos /= knownBoids.Count;
-        avgVel /= knownBoids.Count;
-        // separationVector /= knownBoids.Count;
     }
 
     private Vector3 Target()
@@ -176,7 +194,7 @@ public class Boids : MonoBehaviour
         Vector3 pos = transform.position;
         float dist = Vector3.Distance(posToAvoid, pos);
 
-        if (dist < seperationDistance)
+        if (dist < seperationDistance && dist != 0)
         {
             // Equation is gained through trial and error.
             // return (transform.position - posToAvoid) * (seperationDistance - dist);
@@ -194,28 +212,12 @@ public class Boids : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Boid"))
-        {
-            knownBoids.Add(other.GetComponent<Rigidbody>());
-            flockChanged = true;
-        }
-        else
-        {
-            knownObstacles.Add(other);
-        }
+        if (!other.CompareTag("Boid")) knownObstacles.Add(other);
     }
 
     private void OnTriggerExit(Collider other)
     {
-        if (other.CompareTag("Boid"))
-        {
-            flockChanged = true;
-            knownBoids.Remove(other.GetComponent<Rigidbody>());
-        }
-        else
-        {
-            knownObstacles.Remove(other);
-        }
+        if (!other.CompareTag("Boid")) knownObstacles.Remove(other);
     }
 
     private void OnDrawGizmosSelected()
