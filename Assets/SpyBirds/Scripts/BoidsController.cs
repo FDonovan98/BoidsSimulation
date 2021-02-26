@@ -22,6 +22,9 @@ public class BoidsController : MonoBehaviour
     const int partitionNumber = 70;
     PartitionData[,,] partitions = new PartitionData[partitionNumber, partitionNumber, partitionNumber];
 
+    List<UpdatePartitionQueue> updatePartitionQueue = new List<UpdatePartitionQueue>();
+    List<UpdatePartitionQueue> updatePartitionIndex = new List<UpdatePartitionQueue>();
+
     // Update flock values delegate.
     public delegate void NotifyBoidsPartitionUpdate(PartitionData partitionData);
     public NotifyBoidsPartitionUpdate notifyBoidsPartitionUpdate;
@@ -32,6 +35,26 @@ public class BoidsController : MonoBehaviour
         {
             availableIndex.Add(i);
         }
+    }
+
+    // Iterates through updatePartitionQueue and updatePartitionIndex.
+    // Will need to call notifyBoidsPartitionUpdate for each updatePartitionQueue.
+    private void Update()
+    {
+        foreach (UpdatePartitionQueue item in updatePartitionIndex)
+        {
+            partitions[item.m_partitionID.x, item.m_partitionID.y, item.m_partitionID.z].UpdateIDList(item.m_boidID, item.m_removeID);
+        }
+        updatePartitionIndex = new List<UpdatePartitionQueue>();
+
+        foreach (UpdatePartitionQueue item in updatePartitionQueue)
+        {
+            partitions[item.m_partitionID.x, item.m_partitionID.y, item.m_partitionID.z].UpdateFlockValues(boidData);
+
+            notifyBoidsPartitionUpdate(partitions[item.m_partitionID.x, item.m_partitionID.y, item.m_partitionID.z]);
+        }
+
+        updatePartitionQueue = new List<UpdatePartitionQueue>();
     }
 
     // Called by boidData to register themselves with the BoidController.
@@ -61,7 +84,6 @@ public class BoidsController : MonoBehaviour
         // On initialisation boid cannot be unregistered for partitionData ID list as it has not yet been added to any.
         if (isInitialisation)
         {
-            Debug.Log("initial part ids: " + partition);
             // This should be refactored into a standalone function as is duplicated code.
             boidData[boidID].m_partitionID = partition;
 
@@ -71,13 +93,9 @@ public class BoidsController : MonoBehaviour
             }
             else
             {
-
-                partitions[partition.x, partition.y, partition.z].UpdateData(boidData, boidID, false);
-                notifyBoidsPartitionUpdate(partitions[partition.x, partition.y, partition.z]);
+                QueueUpdateData(partition, boidID, false);
                 return;
             }
-
-            notifyBoidsPartitionUpdate(partitions[partition.x, partition.y, partition.z]);
         }
         else
         {
@@ -119,8 +137,7 @@ public class BoidsController : MonoBehaviour
 
         if (boidData[boidID].m_partitionID == newPartition)
         {
-            partitions[partitionID.x, partitionID.y, partitionID.z].UpdateData(boidData);
-            notifyBoidsPartitionUpdate(partitions[partitionID.x, partitionID.y, partitionID.z]);
+            QueueUpdateData(partitionID);
             return;
         }
 
@@ -128,11 +145,7 @@ public class BoidsController : MonoBehaviour
         // Notify subscribed boidData partitions have updated
 
         // This should be refactored into a standalone function as is duplicated code.
-        Debug.Log(boidData[boidID].m_rb.name);
-        Debug.Log(partitions[partitionID.x, partitionID.y, partitionID.z]);
-        Debug.Log(partitionID);
-        partitions[partitionID.x, partitionID.y, partitionID.z].UpdateData(boidData, boidID, true);
-        notifyBoidsPartitionUpdate(partitions[partitionID.x, partitionID.y, partitionID.z]);
+        QueueUpdateData(partitionID, boidID, true);
 
         // This should be refactored into a standalone function as is duplicated code.
         // Update new partition, adding boid to id list.
@@ -144,9 +157,30 @@ public class BoidsController : MonoBehaviour
         }
         else
         {
-            partitions[newPartition.x, newPartition.y, newPartition.z].UpdateData(boidData, boidID, false);
+            QueueUpdateData(newPartition, boidID, false);
         }
-        notifyBoidsPartitionUpdate(partitions[newPartition.x, newPartition.y, newPartition.z]);
+    }
+
+    void QueueUpdateData(Vector3Int partitionID)
+    {
+        UpdatePartitionQueue queueItem = new UpdatePartitionQueue(partitionID);
+
+        // Uses foreach rather than .contains as we only care about matching partitionID, not full match
+        foreach (UpdatePartitionQueue item in updatePartitionQueue)
+        {
+            if (item.m_partitionID == partitionID)
+            {
+                return;
+            }
+        }
+
+        updatePartitionQueue.Add(queueItem);
+    }
+
+    void QueueUpdateData(Vector3Int partitionID, int boidID, bool idIsBeingRemoved)
+    {
+        updatePartitionIndex.Add(new UpdatePartitionQueue(partitionID, boidID, idIsBeingRemoved));
+        QueueUpdateData(partitionID);
     }
 
     private void OnDrawGizmosSelected()
@@ -166,6 +200,20 @@ public class BoidsController : MonoBehaviour
                 }
             }
         }
+    }
+}
+
+struct UpdatePartitionQueue
+{
+    public Vector3Int m_partitionID;
+    public int m_boidID;
+    public bool m_removeID;
+
+    public UpdatePartitionQueue(Vector3Int partitionID, int boidID = int.MaxValue, bool removeID = false)
+    {
+        m_partitionID = partitionID;
+        m_boidID = boidID;
+        m_removeID = removeID;
     }
 }
 
@@ -190,11 +238,11 @@ public class PartitionData
 
     public PartitionData(BoidData[] boidData, int boidID)
     {
+        boidIDs = new List<int>();
         boidIDs.Add(boidID);
-        UpdateData(boidData);
     }
 
-    public void UpdateData(BoidData[] boidData)
+    public void UpdateFlockValues(BoidData[] boidData)
     {
         if (boidIDs.Count < 1) return;
 
@@ -215,12 +263,10 @@ public class PartitionData
         flockValues = new FlockValues(avgPos / boidIDs.Count, avgVel / boidIDs.Count, posArray);
     }
 
-    public void UpdateData(BoidData[] boidData, int boidID, bool idIsBeingRemoved)
+    public void UpdateIDList(int boidID, bool idIsBeingRemoved)
     {
         if (idIsBeingRemoved) boidIDs.Remove(boidID);
         else boidIDs.Add(boidID);
-
-        UpdateData(boidData);
     }
 }
 
