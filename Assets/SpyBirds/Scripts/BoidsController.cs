@@ -21,6 +21,8 @@ public class BoidsController : MonoBehaviour
     float partitionLength = 20.0f;
     [SerializeField]
     const int partitionNumber = 70;
+    [SerializeField]
+    int partitionUpdatesPerFrame = 10;
     PartitionData[,,] partitions = new PartitionData[partitionNumber, partitionNumber, partitionNumber];
 
     List<UpdatePartitionQueue> updatePartitionQueue = new List<UpdatePartitionQueue>();
@@ -44,26 +46,29 @@ public class BoidsController : MonoBehaviour
     {
         UpdatePartitionIDLists();
 
-        foreach (UpdatePartitionQueue item in updatePartitionQueue)
+        // foreach (UpdatePartitionQueue item in updatePartitionQueue)
+        // {
+        //     partitions[item.m_partitionID.x, item.m_partitionID.y, item.m_partitionID.z].UpdateFlockValues(boidData);
+
+        //     notifyBoidsPartitionUpdate(partitions[item.m_partitionID.x, item.m_partitionID.y, item.m_partitionID.z]);
+        // }
+
+        for (int i = 0; i < Mathf.Min(partitionUpdatesPerFrame, updatePartitionQueue.Count); i++)
         {
-            partitions[item.m_partitionID.x, item.m_partitionID.y, item.m_partitionID.z].UpdateFlockValues(boidData);
+            partitions[updatePartitionQueue[0].m_partitionID.x, updatePartitionQueue[0].m_partitionID.y, updatePartitionQueue[0].m_partitionID.z].UpdateFlockValues(boidData);
 
-            notifyBoidsPartitionUpdate(partitions[item.m_partitionID.x, item.m_partitionID.y, item.m_partitionID.z]);
+            updatePartitionQueue.RemoveAt(0);
         }
-
-        updatePartitionQueue = new List<UpdatePartitionQueue>();
+        Debug.Log(updatePartitionQueue.Count);
     }
 
-    private async void UpdatePartitionIDLists()
+    private void UpdatePartitionIDLists()
     {
-        await Task.Run(() =>
+        foreach (UpdatePartitionQueue item in updatePartitionIndex)
         {
-            foreach (UpdatePartitionQueue item in updatePartitionIndex)
-            {
-                partitions[item.m_partitionID.x, item.m_partitionID.y, item.m_partitionID.z].UpdateIDList(item.m_boidID, item.m_removeID);
-            }
-            updatePartitionIndex = new List<UpdatePartitionQueue>();
-        });
+            partitions[item.m_partitionID.x, item.m_partitionID.y, item.m_partitionID.z].UpdateIDList(item.m_boidID, item.m_removeID);
+        }
+        updatePartitionIndex = new List<UpdatePartitionQueue>();
     }
 
     // Called by boidData to register themselves with the BoidController.
