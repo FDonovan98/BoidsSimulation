@@ -63,13 +63,16 @@ public class BoidsController : MonoBehaviour
         {
             Debug.Log("initial part ids: " + partition);
             // This should be refactored into a standalone function as is duplicated code.
+            boidData[boidID].m_partitionID = partition;
+
             if (partitions[partition.x, partition.y, partition.z] == null)
             {
                 partitions[partition.x, partition.y, partition.z] = new PartitionData(boidData, boidID);
             }
             else
             {
-                partitions[partition.x, partition.y, partition.z].UpdateData(boidData);
+
+                partitions[partition.x, partition.y, partition.z].UpdateData(boidData, boidID, false);
                 notifyBoidsPartitionUpdate(partitions[partition.x, partition.y, partition.z]);
                 return;
             }
@@ -125,6 +128,7 @@ public class BoidsController : MonoBehaviour
         // Notify subscribed boidData partitions have updated
 
         // This should be refactored into a standalone function as is duplicated code.
+        Debug.Log(boidData[boidID].m_rb.name);
         Debug.Log(partitions[partitionID.x, partitionID.y, partitionID.z]);
         Debug.Log(partitionID);
         partitions[partitionID.x, partitionID.y, partitionID.z].UpdateData(boidData, boidID, true);
@@ -133,6 +137,7 @@ public class BoidsController : MonoBehaviour
         // This should be refactored into a standalone function as is duplicated code.
         // Update new partition, adding boid to id list.
         // Notify subscribed boidData partitions have updated
+        boidData[boidID].m_partitionID = partitionID;
         partitions[newPartition.x, newPartition.y, newPartition.z].UpdateData(boidData, boidID, false);
         notifyBoidsPartitionUpdate(partitions[newPartition.x, newPartition.y, newPartition.z]);
     }
