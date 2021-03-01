@@ -4,6 +4,7 @@
 // References:
 // Description: Controller class for boid flocks. Should handle spatial partitioning.
 
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -44,43 +45,55 @@ public class BoidsController : MonoBehaviour
     // Will need to call notifyBoidsPartitionUpdate for each updatePartitionQueue.
     private void Update()
     {
+        Debug.Log(updatePartitionQueue.Count);
         UpdatePartitionIDLists();
 
-        // foreach (UpdatePartitionQueue item in updatePartitionQueue)
-        // {
-        //     partitions[item.m_partitionID.x, item.m_partitionID.y, item.m_partitionID.z].UpdateFlockValues(boidData);
+        UpdatePartitionFlockData();
+    }
 
-        //     notifyBoidsPartitionUpdate(partitions[item.m_partitionID.x, item.m_partitionID.y, item.m_partitionID.z]);
-        // }
-
-        for (int i = 0; i < Mathf.Min(partitionUpdatesPerFrame, updatePartitionQueue.Count); i++)
+    // May create multiple Tasks which check same positions.
+    private async void UpdatePartitionFlockData()
+    {
+        await Task.Run(() =>
         {
-            partitions[updatePartitionQueue[0].m_partitionID.x, updatePartitionQueue[0].m_partitionID.y, updatePartitionQueue[0].m_partitionID.z].UpdateFlockValues(boidData);
+            for (int i = 0; i < Mathf.Min(partitionUpdatesPerFrame, updatePartitionQueue.Count); i++)
+            {
+                partitions[updatePartitionQueue[0].m_partitionID.x, updatePartitionQueue[0].m_partitionID.y, updatePartitionQueue[0].m_partitionID.z].UpdateFlockValues(boidData);
 
-            updatePartitionQueue.RemoveAt(0);
-        }
-        Debug.Log(updatePartitionQueue.Count);
+                partitions[updatePartitionQueue[0].m_partitionID.x, updatePartitionQueue[0].m_partitionID.y, updatePartitionQueue[0].m_partitionID.z].CalculateAdjustedFlockValues(partitions);
+
+                notifyBoidsPartitionUpdate(partitions[updatePartitionQueue[0].m_partitionID.x, updatePartitionQueue[0].m_partitionID.y, updatePartitionQueue[0].m_partitionID.z]);
+
+                lock (updatePartitionQueue)
+                {
+                    updatePartitionQueue.RemoveAt(0);
+                }
+            }
+        });
     }
 
     private void UpdatePartitionIDLists()
     {
+        // await Task.Run(() =>
+        // {
         foreach (UpdatePartitionQueue item in updatePartitionIndex)
         {
             partitions[item.m_partitionID.x, item.m_partitionID.y, item.m_partitionID.z].UpdateIDList(item.m_boidID, item.m_removeID);
         }
         updatePartitionIndex = new List<UpdatePartitionQueue>();
+        // });
     }
 
     // Called by boidData to register themselves with the BoidController.
     // Returns int.MaxValue if boid list is full.
-    public int RegisterBoid(Rigidbody rb, out float updateDistance)
+    public int RegisterBoid(Boids boidScript, out float updateDistance)
     {
         if (availableIndex.Count > 0)
         {
             int id = availableIndex[0];
             availableIndex.RemoveAt(0);
 
-            boidData[id] = new BoidData(id, rb);
+            boidData[id] = new BoidData(id, boidScript);
             UpdateBoidPos(id, true);
             updateDistance = partitionLength / 2;
             return id;
@@ -93,7 +106,7 @@ public class BoidsController : MonoBehaviour
 
     public void UpdateBoidPos(int boidID, bool isInitialisation = false)
     {
-        Vector3Int partition = CalculatePartition(boidData[boidID].m_rb.position);
+        Vector3Int partition = CalculatePartition(boidData[boidID].m_boidScript.lastPos);
 
         // On initialisation boid cannot be unregistered for partitionData ID list as it has not yet been added to any.
         if (isInitialisation)
@@ -103,7 +116,7 @@ public class BoidsController : MonoBehaviour
 
             if (partitions[partition.x, partition.y, partition.z] == null)
             {
-                partitions[partition.x, partition.y, partition.z] = new PartitionData(boidData, boidID);
+                partitions[partition.x, partition.y, partition.z] = new PartitionData(boidID, partition, partitionNumber);
             }
             else
             {
@@ -167,7 +180,7 @@ public class BoidsController : MonoBehaviour
         boidData[boidID].m_partitionID = partitionID;
         if (partitions[newPartition.x, newPartition.y, newPartition.z] == null)
         {
-            partitions[newPartition.x, newPartition.y, newPartition.z] = new PartitionData(boidData, boidID);
+            partitions[newPartition.x, newPartition.y, newPartition.z] = new PartitionData(boidID, newPartition, partitionNumber);
         }
         else
         {
@@ -249,11 +262,65 @@ public class PartitionData
 {
     public List<int> boidIDs = new List<int>();
     public FlockValues flockValues;
+    public FlockValues adjustedFlockValues;
+    static Vector3Int m_partitionID;
+    static Vector3Int[] neighbouringIDs;
 
-    public PartitionData(BoidData[] boidData, int boidID)
+    public PartitionData(int boidID, Vector3Int partitionID, int numPartitions)
     {
         boidIDs = new List<int>();
         boidIDs.Add(boidID);
+
+        m_partitionID = partitionID;
+        List<Vector3Int> neighbours = new List<Vector3Int>();
+        if (partitionID.x != 0)
+        {
+            neighbours.Add(new Vector3Int(partitionID.x - 1, partitionID.y, partitionID.z));
+        }
+        if (partitionID.x < numPartitions - 1)
+        {
+            neighbours.Add(new Vector3Int(partitionID.x + 1, partitionID.y, partitionID.z));
+        }
+        if (partitionID.y != 0)
+        {
+            neighbours.Add(new Vector3Int(partitionID.x, partitionID.y - 1, partitionID.z));
+        }
+        if (partitionID.y < numPartitions - 1)
+        {
+            neighbours.Add(new Vector3Int(partitionID.x, partitionID.y + 1, partitionID.z));
+        }
+        if (partitionID.z != 0)
+        {
+            neighbours.Add(new Vector3Int(partitionID.x, partitionID.y, partitionID.z - 1));
+        }
+        if (partitionID.z < numPartitions - 1)
+        {
+            neighbours.Add(new Vector3Int(partitionID.x, partitionID.y, partitionID.z + 1));
+        }
+
+        neighbouringIDs = neighbours.ToArray();
+    }
+
+    public void CalculateAdjustedFlockValues(PartitionData[,,] partitionDatas)
+    {
+        Vector3 avgPos = flockValues.m_avgPos * boidIDs.Count;
+        Vector3 avgVel = flockValues.m_avgVel * boidIDs.Count;
+        Vector3[] posArray = flockValues.m_posArray;
+
+        int totalCount = boidIDs.Count;
+        foreach (Vector3Int item in neighbouringIDs)
+        {
+            if (partitionDatas[item.x, item.y, item.z] != null)
+            {
+                avgPos += partitionDatas[item.x, item.y, item.z].flockValues.m_avgPos * partitionDatas[item.x, item.y, item.z].boidIDs.Count;
+
+                avgVel += partitionDatas[item.x, item.y, item.z].flockValues.m_avgVel * partitionDatas[item.x, item.y, item.z].boidIDs.Count;
+
+                totalCount += partitionDatas[item.x, item.y, item.z].boidIDs.Count;
+            }
+        }
+
+        adjustedFlockValues = new FlockValues(avgPos / totalCount, avgVel / totalCount, posArray);
     }
 
     public void UpdateFlockValues(BoidData[] boidData)
@@ -267,9 +334,9 @@ public class PartitionData
         int i = 0;
         foreach (int id in boidIDs)
         {
-            posArray[i] = boidData[id].m_rb.position;
+            posArray[i] = boidData[id].m_boidScript.lastPos;
             avgPos += posArray[i];
-            avgVel += boidData[id].m_rb.velocity;
+            avgVel += boidData[id].m_boidScript.velocity;
 
             i++;
         }
@@ -287,13 +354,13 @@ public class PartitionData
 public struct BoidData
 {
     public int m_id;
-    public Rigidbody m_rb;
+    public Boids m_boidScript;
     public Vector3Int m_partitionID;
 
-    public BoidData(int id, Rigidbody rb)
+    public BoidData(int id, Boids boidScript)
     {
         m_id = id;
-        m_rb = rb;
+        m_boidScript = boidScript;
         m_partitionID = Vector3Int.zero;
     }
 }
