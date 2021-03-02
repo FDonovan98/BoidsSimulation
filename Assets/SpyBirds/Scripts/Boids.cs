@@ -72,11 +72,8 @@ public class Boids : MonoBehaviour
         boidsController = transform.parent.GetComponent<BoidsController>();
         lastPos = transform.position;
 
-        Vector3 startingVel = new Vector3(Random.value, Random.value, Random.value) * 2;
-        startingVel.x -= 1.0f;
-        startingVel.y -= 1.0f;
-        startingVel.z -= 1.0f;
-        velocity = startingVel * Random.Range(1.0f, maxSpeed);
+        Vector3 startingVel = new Vector3(Random.value, Random.value, Random.value);
+        velocity = startingVel * Random.Range(-maxSpeed, maxSpeed);
 
         sphereCollider = GetComponent<SphereCollider>();
         sphereCollider.radius = awarenessRadius;
@@ -87,20 +84,16 @@ public class Boids : MonoBehaviour
     // If it is update flock values.
     void FlockValuesUpdated(PartitionData partitionData)
     {
-        foreach (int relevantID in partitionData.boidIDs)
+        if (partitionData.boidIDs.Contains(id))
         {
-            if (id == relevantID)
-            {
-                // Update stored flock values.
-                flockValues = partitionData.adjustedFlockValues;
+            // Update stored flock values.
+            flockValues = partitionData.adjustedFlockValues;
 
-                // Recalculate separationVector now that the flockValues have changed.
-                separationVector = new Vector3();
-                foreach (Vector3 otherBoidPos in partitionData.flockValues.m_posArray)
-                {
-                    separationVector += AvoidPoint(otherBoidPos);
-                }
-                return;
+            // Recalculate separationVector now that the flockValues have changed.
+            separationVector = new Vector3();
+            foreach (Vector3 otherBoidPos in partitionData.flockValues.m_posArray)
+            {
+                separationVector += AvoidPoint(otherBoidPos);
             }
         }
     }
@@ -114,8 +107,11 @@ public class Boids : MonoBehaviour
 
         // Flock behaviour.
         newVel += Cohesion(flockValues.m_avgPos);
+
         newVel += Seperation(separationVector);
+
         newVel += Alignment(flockValues.m_avgVel);
+
 
         // Obstacle avoidance.
         if (knownObstacles.Count != 0)
@@ -124,8 +120,27 @@ public class Boids : MonoBehaviour
         }
 
         // Sets velocity to limited newVel
+        if (id == 1498)
+        {
+            Debug.DrawRay(transform.position, Target(), Color.red);
+            Debug.DrawRay(transform.position, Cohesion(flockValues.m_avgPos), Color.blue);
+            Debug.DrawRay(transform.position, Seperation(separationVector), Color.green);
+            Debug.DrawRay(transform.position, Alignment(flockValues.m_avgVel), Color.yellow);
+            Debug.DrawRay(transform.position, newVel, Color.magenta);
+            Debug.Log("New set " + id);
+            Debug.Log("Target: " + Target());
+            Debug.Log("Cohesion: " + Cohesion(flockValues.m_avgPos));
+            Debug.Log("AvoidTerrain: " + AvoidTerrain());
+            Debug.Log("Seperation: " + Seperation(separationVector));
+            Debug.Log("Alignment: " + Alignment(flockValues.m_avgVel));
+            Debug.Log("newVel: " + newVel);
+            Debug.Log("velocity: " + velocity);
+        }
         velocity = ApplyVelLimits(newVel);
-
+        if (id == 1498)
+        {
+            Debug.Log("velocity: " + velocity);
+        }
 
         // Will cause clipping as no collision checks. 
         // But is done so no RigidBody is needed.
@@ -156,7 +171,8 @@ public class Boids : MonoBehaviour
 
     private Vector3 ApplyVelLimits(Vector3 newVel)
     {
-        newVel = newVel.normalized * Mathf.Clamp(newVel.magnitude, -maxSpeed, maxSpeed);
+        newVel = Vector3.ClampMagnitude(newVel, maxSpeed);
+
         newVel = Vector3.RotateTowards(velocity, newVel, turnRate * Mathf.Deg2Rad * Time.deltaTime, acceleration * Time.deltaTime);
 
         return newVel;
@@ -190,7 +206,7 @@ public class Boids : MonoBehaviour
             // Equation is gained through trial and error.
             // return (transform.position - posToAvoid) * (seperationDistance - dist);
 
-            return (lastPos - posToAvoid) / Mathf.Pow(dist, 2);
+            return (lastPos - posToAvoid).normalized / Mathf.Pow(dist, 2);
         }
 
         return Vector3.zero;
@@ -198,7 +214,7 @@ public class Boids : MonoBehaviour
 
     private Vector3 Cohesion(Vector3 avgPos)
     {
-        return (avgPos - transform.position) * cohesionWeight;
+        return (avgPos - transform.position).normalized * cohesionWeight;
     }
 
     private void OnTriggerEnter(Collider other)
@@ -213,18 +229,11 @@ public class Boids : MonoBehaviour
 
     private void OnDrawGizmosSelected()
     {
-        // if (debugMode)
-        // {
-        //     Gizmos.DrawWireSphere(transform.position, awarenessRadius);
-
-        //     Gizmos.color = Color.red;
-        //     Gizmos.DrawSphere(Target() + transform.position, targetWeight);
-
-        //     Gizmos.color = Color.green;
-        //     Gizmos.DrawSphere(Cohesion(GetFlockAvgPos()) + transform.position, cohesionWeight);
-
-        //     Gizmos.color = Color.yellow;
-        //     Gizmos.DrawSphere(Seperation() + transform.position, seperationWeight);
-        // }
+        if (debugMode)
+        {
+            Gizmos.color = Color.red;
+            Debug.Log("avgPos: " + flockValues.m_avgPos);
+            Gizmos.DrawSphere(flockValues.m_avgPos, 1f);
+        }
     }
 }

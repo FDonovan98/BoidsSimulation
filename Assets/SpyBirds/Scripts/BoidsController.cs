@@ -4,7 +4,7 @@
 // References:
 // Description: Controller class for boid flocks. Should handle spatial partitioning.
 
-using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -27,6 +27,7 @@ public class BoidsController : MonoBehaviour
     PartitionData[,,] partitions = new PartitionData[partitionNumber, partitionNumber, partitionNumber];
 
     List<UpdatePartitionQueue> updatePartitionQueue = new List<UpdatePartitionQueue>();
+    ConcurrentQueue<UpdatePartitionQueue> updatePartQueue = new ConcurrentQueue<UpdatePartitionQueue>();
     List<UpdatePartitionQueue> updatePartitionIndex = new List<UpdatePartitionQueue>();
 
     // Update flock values delegate.
@@ -45,7 +46,6 @@ public class BoidsController : MonoBehaviour
     // Will need to call notifyBoidsPartitionUpdate for each updatePartitionQueue.
     private void Update()
     {
-        Debug.Log(updatePartitionQueue.Count);
         UpdatePartitionIDLists();
 
         UpdatePartitionFlockData();
@@ -54,21 +54,46 @@ public class BoidsController : MonoBehaviour
     // May create multiple Tasks which check same positions.
     private async void UpdatePartitionFlockData()
     {
+        // await Task.Run(() =>
+        // {
+        //     for (int i = 0; i < Mathf.Min(partitionUpdatesPerFrame, updatePartitionQueue.Count); i++)
+        //     {
+        //         partitions[updatePartitionQueue[0].m_partitionID.x, updatePartitionQueue[0].m_partitionID.y, updatePartitionQueue[0].m_partitionID.z].UpdateFlockValues(boidData);
+
+        //         partitions[updatePartitionQueue[0].m_partitionID.x, updatePartitionQueue[0].m_partitionID.y, updatePartitionQueue[0].m_partitionID.z].CalculateAdjustedFlockValues(partitions);
+
+        //         // Delegate call and list modification needs to be done on main thread due to errors being thrown.
+        //         // I think.
+        //         notifyBoidsPartitionUpdate(partitions[updatePartitionQueue[0].m_partitionID.x, updatePartitionQueue[0].m_partitionID.y, updatePartitionQueue[0].m_partitionID.z]);
+
+        //         lock (updatePartitionQueue)
+        //         {
+        //             updatePartitionQueue.RemoveAt(0);
+        //         }
+        //     }
+        // });
+
         await Task.Run(() =>
         {
-            for (int i = 0; i < Mathf.Min(partitionUpdatesPerFrame, updatePartitionQueue.Count); i++)
+            int i = 0;
+            do
             {
-                partitions[updatePartitionQueue[0].m_partitionID.x, updatePartitionQueue[0].m_partitionID.y, updatePartitionQueue[0].m_partitionID.z].UpdateFlockValues(boidData);
+                if (updatePartQueue.Count == 0) return;
 
-                partitions[updatePartitionQueue[0].m_partitionID.x, updatePartitionQueue[0].m_partitionID.y, updatePartitionQueue[0].m_partitionID.z].CalculateAdjustedFlockValues(partitions);
-
-                notifyBoidsPartitionUpdate(partitions[updatePartitionQueue[0].m_partitionID.x, updatePartitionQueue[0].m_partitionID.y, updatePartitionQueue[0].m_partitionID.z]);
-
-                lock (updatePartitionQueue)
+                UpdatePartitionQueue updateQueue;
+                if (updatePartQueue.TryDequeue(out updateQueue))
                 {
-                    updatePartitionQueue.RemoveAt(0);
+                    i++;
+                    partitions[updateQueue.m_partitionID.x, updateQueue.m_partitionID.y, updateQueue.m_partitionID.z].UpdateFlockValues(boidData);
+
+                    partitions[updateQueue.m_partitionID.x, updateQueue.m_partitionID.y, updateQueue.m_partitionID.z].CalculateAdjustedFlockValues(partitions);
+
+                    // Delegate call and list modification needs to be done on main thread due to errors being thrown.
+                    // I think.
+                    notifyBoidsPartitionUpdate(partitions[updateQueue.m_partitionID.x, updateQueue.m_partitionID.y, updateQueue.m_partitionID.z]);
                 }
-            }
+
+            } while (i < Mathf.Min(partitionUpdatesPerFrame, updatePartQueue.Count));
         });
     }
 
@@ -76,11 +101,15 @@ public class BoidsController : MonoBehaviour
     {
         // await Task.Run(() =>
         // {
-        foreach (UpdatePartitionQueue item in updatePartitionIndex)
+
+        for (int i = 0; i < updatePartitionIndex.Count; i++)
         {
-            partitions[item.m_partitionID.x, item.m_partitionID.y, item.m_partitionID.z].UpdateIDList(item.m_boidID, item.m_removeID);
+            partitions[updatePartitionIndex[i].m_partitionID.x, updatePartitionIndex[i].m_partitionID.y, updatePartitionIndex[i].m_partitionID.z].UpdateIDList(updatePartitionIndex[i].m_boidID, updatePartitionIndex[i].m_removeID);
+
+            updatePartitionIndex.RemoveAt(i);
+            i--;
         }
-        updatePartitionIndex = new List<UpdatePartitionQueue>();
+
         // });
     }
 
@@ -171,7 +200,6 @@ public class BoidsController : MonoBehaviour
         // Update old partition, removing boid from id list.
         // Notify subscribed boidData partitions have updated
 
-        // This should be refactored into a standalone function as is duplicated code.
         QueueUpdateData(partitionID, boidID, true);
 
         // This should be refactored into a standalone function as is duplicated code.
@@ -190,18 +218,19 @@ public class BoidsController : MonoBehaviour
 
     void QueueUpdateData(Vector3Int partitionID)
     {
-        UpdatePartitionQueue queueItem = new UpdatePartitionQueue(partitionID);
+        updatePartQueue.Enqueue(new UpdatePartitionQueue(partitionID));
+        // UpdatePartitionQueue queueItem = new UpdatePartitionQueue(partitionID);
 
-        // Uses foreach rather than .contains as we only care about matching partitionID, not full match
-        foreach (UpdatePartitionQueue item in updatePartitionQueue)
-        {
-            if (item.m_partitionID == partitionID)
-            {
-                return;
-            }
-        }
+        // // Uses foreach rather than .contains as we only care about matching partitionID, not full match.
+        // foreach (UpdatePartitionQueue item in updatePartitionQueue)
+        // {
+        //     if (item.m_partitionID == partitionID)
+        //     {
+        //         return;
+        //     }
+        // }
 
-        updatePartitionQueue.Add(queueItem);
+        // updatePartitionQueue.Add(queueItem);
     }
 
     void QueueUpdateData(Vector3Int partitionID, int boidID, bool idIsBeingRemoved)
@@ -306,8 +335,8 @@ public class PartitionData
         Vector3 avgPos = flockValues.m_avgPos * boidIDs.Count;
         Vector3 avgVel = flockValues.m_avgVel * boidIDs.Count;
         Vector3[] posArray = flockValues.m_posArray;
-
         int totalCount = boidIDs.Count;
+
         foreach (Vector3Int item in neighbouringIDs)
         {
             if (partitionDatas[item.x, item.y, item.z] != null)
@@ -329,19 +358,16 @@ public class PartitionData
 
         Vector3 avgPos = new Vector3();
         Vector3 avgVel = new Vector3();
-        Vector3[] posArray = new Vector3[boidIDs.Count];
+        List<Vector3> posArray = new List<Vector3>();
 
-        int i = 0;
-        foreach (int id in boidIDs)
+        for (int i = 0; i < boidIDs.Count; i++)
         {
-            posArray[i] = boidData[id].m_boidScript.lastPos;
-            avgPos += posArray[i];
-            avgVel += boidData[id].m_boidScript.velocity;
-
-            i++;
+            posArray.Add(boidData[boidIDs[i]].m_boidScript.lastPos);
+            avgPos += boidData[boidIDs[i]].m_boidScript.lastPos;
+            avgVel += boidData[boidIDs[i]].m_boidScript.velocity;
         }
 
-        flockValues = new FlockValues(avgPos / boidIDs.Count, avgVel / boidIDs.Count, posArray);
+        flockValues = new FlockValues(avgPos / boidIDs.Count, avgVel / boidIDs.Count, posArray.ToArray());
     }
 
     public void UpdateIDList(int boidID, bool idIsBeingRemoved)
