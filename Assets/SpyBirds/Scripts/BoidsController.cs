@@ -57,25 +57,6 @@ public class BoidsController : MonoBehaviour
     // May create multiple Tasks which check same positions.
     private async void UpdatePartitionFlockData()
     {
-        // await Task.Run(() =>
-        // {
-        //     for (int i = 0; i < Mathf.Min(partitionUpdatesPerFrame, updatePartitionQueue.Count); i++)
-        //     {
-        //         partitions[updatePartitionQueue[0].m_partitionID.x, updatePartitionQueue[0].m_partitionID.y, updatePartitionQueue[0].m_partitionID.z].UpdateFlockValues(boidData);
-
-        //         partitions[updatePartitionQueue[0].m_partitionID.x, updatePartitionQueue[0].m_partitionID.y, updatePartitionQueue[0].m_partitionID.z].CalculateAdjustedFlockValues(partitions);
-
-        //         // Delegate call and list modification needs to be done on main thread due to errors being thrown.
-        //         // I think.
-        //         notifyBoidsPartitionUpdate(partitions[updatePartitionQueue[0].m_partitionID.x, updatePartitionQueue[0].m_partitionID.y, updatePartitionQueue[0].m_partitionID.z]);
-
-        //         lock (updatePartitionQueue)
-        //         {
-        //             updatePartitionQueue.RemoveAt(0);
-        //         }
-        //     }
-        // });
-
         await Task.Run(() =>
         {
             int i = 0;
@@ -222,18 +203,6 @@ public class BoidsController : MonoBehaviour
     void QueueUpdateData(Vector3Int partitionID)
     {
         updatePartQueue.Enqueue(new UpdatePartitionQueue(partitionID));
-        // UpdatePartitionQueue queueItem = new UpdatePartitionQueue(partitionID);
-
-        // // Uses foreach rather than .contains as we only care about matching partitionID, not full match.
-        // foreach (UpdatePartitionQueue item in updatePartitionQueue)
-        // {
-        //     if (item.m_partitionID == partitionID)
-        //     {
-        //         return;
-        //     }
-        // }
-
-        // updatePartitionQueue.Add(queueItem);
     }
 
     void QueueUpdateData(Vector3Int partitionID, int boidID, bool idIsBeingRemoved)

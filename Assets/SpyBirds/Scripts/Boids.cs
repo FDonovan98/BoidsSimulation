@@ -119,28 +119,7 @@ public class Boids : MonoBehaviour
             newVel += AvoidTerrain();
         }
 
-        // // Sets velocity to limited newVel
-        // if (id == 1498)
-        // {
-        //     Debug.DrawRay(transform.position, Target(), Color.red);
-        //     Debug.DrawRay(transform.position, Cohesion(flockValues.m_avgPos), Color.blue);
-        //     Debug.DrawRay(transform.position, Seperation(separationVector), Color.green);
-        //     Debug.DrawRay(transform.position, Alignment(flockValues.m_avgVel), Color.yellow);
-        //     Debug.DrawRay(transform.position, newVel, Color.magenta);
-        //     Debug.Log("New set " + id);
-        //     Debug.Log("Target: " + Target());
-        //     Debug.Log("Cohesion: " + Cohesion(flockValues.m_avgPos));
-        //     Debug.Log("AvoidTerrain: " + AvoidTerrain());
-        //     Debug.Log("Seperation: " + Seperation(separationVector));
-        //     Debug.Log("Alignment: " + Alignment(flockValues.m_avgVel));
-        //     Debug.Log("newVel: " + newVel);
-        //     Debug.Log("velocity: " + velocity);
-        // }
         velocity = ApplyVelLimits(newVel);
-        // if (id == 1498)
-        // {
-        //     Debug.Log("velocity: " + velocity);
-        // }
 
         // Will cause clipping as no collision checks. 
         // But is done so no RigidBody is needed.
