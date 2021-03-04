@@ -21,10 +21,10 @@ public class BoidsController : MonoBehaviour
     [SerializeField]
     float partitionLength = 20.0f;
     [SerializeField]
-    const int partitionNumber = 70;
+    int partitionNumber = 70;
     [SerializeField]
     int partitionUpdatesPerFrame = 10;
-    PartitionData[,,] partitions = new PartitionData[partitionNumber, partitionNumber, partitionNumber];
+    PartitionData[,,] partitions;
 
     List<UpdatePartitionQueue> updatePartitionQueue = new List<UpdatePartitionQueue>();
     ConcurrentQueue<UpdatePartitionQueue> updatePartQueue = new ConcurrentQueue<UpdatePartitionQueue>();
@@ -36,6 +36,9 @@ public class BoidsController : MonoBehaviour
 
     private void Awake()
     {
+        partitions = new PartitionData[partitionNumber, partitionNumber, partitionNumber];
+
+
         for (int i = 0; i < maxBoids; i++)
         {
             availableIndex.Add(i);
@@ -251,7 +254,7 @@ public class BoidsController : MonoBehaviour
                 for (int z = 0; z < partitionNumber; z++)
                 {
 
-                    Gizmos.DrawCube(startPos + new Vector3(x * partitionLength + partitionLength / 2, y * partitionLength + partitionLength / 2, z * partitionLength + partitionLength / 2), new Vector3(partitionLength, partitionLength, partitionLength)
+                    Gizmos.DrawWireCube(startPos + new Vector3(x * partitionLength + partitionLength / 2, y * partitionLength + partitionLength / 2, z * partitionLength + partitionLength / 2), new Vector3(partitionLength, partitionLength, partitionLength)
                     );
                 }
             }
