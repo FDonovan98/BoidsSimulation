@@ -26,7 +26,6 @@ public class BoidsController : MonoBehaviour
     int partitionUpdatesPerFrame = 10;
     PartitionData[,,] partitions;
 
-    List<UpdatePartitionQueue> updatePartitionQueue = new List<UpdatePartitionQueue>();
     ConcurrentQueue<UpdatePartitionQueue> updatePartQueue = new ConcurrentQueue<UpdatePartitionQueue>();
     List<UpdatePartitionQueue> updatePartitionIndex = new List<UpdatePartitionQueue>();
 
@@ -38,7 +37,6 @@ public class BoidsController : MonoBehaviour
     {
         partitions = new PartitionData[partitionNumber, partitionNumber, partitionNumber];
         boidData = new BoidData[maxBoids];
-
 
         for (int i = 0; i < maxBoids; i++)
         {
@@ -53,6 +51,8 @@ public class BoidsController : MonoBehaviour
         UpdatePartitionIDLists();
 
         UpdatePartitionFlockData();
+
+        // Debug.Log(updatePartQueue.Count);
     }
 
     // May create multiple Tasks which check same positions.

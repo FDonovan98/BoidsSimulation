@@ -47,6 +47,7 @@ public class Boids : MonoBehaviour
     float distanceTravelled = 0.0f;
     public Vector3 lastPos;
     public Vector3 velocity;
+    Vector3 targetVel;
 
     // Start is called before the first frame update
     void Start()
@@ -81,24 +82,26 @@ public class Boids : MonoBehaviour
             {
                 separationVector += AvoidPoint(otherBoidPos);
             }
+
+            targetVel = new Vector3();
+
+            targetVel += Target();
+
+            // Flock behaviour.
+            targetVel += Cohesion(flockValues.m_avgPos);
+
+            targetVel += Seperation(separationVector);
+
+            targetVel += Alignment(flockValues.m_avgVel);
+
+            targetVel = Vector3.ClampMagnitude(targetVel, maxSpeed);
         }
     }
 
     // Update is called once per frame
     void Update()
     {
-        Vector3 newVel = new Vector3();
-
-        newVel += Target();
-
-        // Flock behaviour.
-        newVel += Cohesion(flockValues.m_avgPos);
-
-        newVel += Seperation(separationVector);
-
-        newVel += Alignment(flockValues.m_avgVel);
-
-        velocity = ApplyVelLimits(newVel);
+        velocity = Vector3.RotateTowards(velocity, targetVel, turnRate * Mathf.Deg2Rad * Time.deltaTime, acceleration * Time.deltaTime);
 
         // Will cause clipping as no collision checks. 
         // But is done so no RigidBody is needed.
@@ -114,15 +117,6 @@ public class Boids : MonoBehaviour
             distanceTravelled = 0.0f;
             boidsController.UpdateBoidPos(id);
         }
-    }
-
-    private Vector3 ApplyVelLimits(Vector3 newVel)
-    {
-        newVel = Vector3.ClampMagnitude(newVel, maxSpeed);
-
-        newVel = Vector3.RotateTowards(velocity, newVel, turnRate * Mathf.Deg2Rad * Time.deltaTime, acceleration * Time.deltaTime);
-
-        return newVel;
     }
 
     private Vector3 Target()
@@ -161,7 +155,7 @@ public class Boids : MonoBehaviour
 
     private Vector3 Cohesion(Vector3 avgPos)
     {
-        return (avgPos - transform.position).normalized * cohesionWeight;
+        return (avgPos - lastPos).normalized * cohesionWeight;
     }
 
     private void OnDrawGizmos()
