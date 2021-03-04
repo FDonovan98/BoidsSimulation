@@ -7,17 +7,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[RequireComponent(typeof(SphereCollider))]
-
 public class Boids : MonoBehaviour
 {
     [SerializeField]
     private bool debugMode;
-    [Header("Detection")]
-    SphereCollider sphereCollider;
-    [SerializeField]
-    private float awarenessRadius = 10.0f;
-    private List<Collider> knownObstacles = new List<Collider>();
 
     [Header("Movement")]
     [SerializeField]
@@ -43,9 +36,6 @@ public class Boids : MonoBehaviour
     [SerializeField]
     [Range(0.0f, 1.0f)]
     private float alignmentWeight = 1.0f;
-    [SerializeField]
-    [Range(0.0f, 1.0f)]
-    private float avoidTerrainWeight = 1.0f;
 
     // Calculated stats.
     BoidsController boidsController;
@@ -74,10 +64,6 @@ public class Boids : MonoBehaviour
 
         Vector3 startingVel = new Vector3(Random.value, Random.value, Random.value);
         velocity = startingVel * Random.Range(-maxSpeed, maxSpeed);
-
-        sphereCollider = GetComponent<SphereCollider>();
-        sphereCollider.radius = awarenessRadius;
-        sphereCollider.isTrigger = true;
     }
 
     // Check if boid id is in list of applicable ids.
@@ -112,13 +98,6 @@ public class Boids : MonoBehaviour
 
         newVel += Alignment(flockValues.m_avgVel);
 
-
-        // Obstacle avoidance.
-        if (knownObstacles.Count != 0)
-        {
-            newVel += AvoidTerrain();
-        }
-
         velocity = ApplyVelLimits(newVel);
 
         // Will cause clipping as no collision checks. 
@@ -135,17 +114,6 @@ public class Boids : MonoBehaviour
             distanceTravelled = 0.0f;
             boidsController.UpdateBoidPos(id);
         }
-    }
-
-    private Vector3 AvoidTerrain()
-    {
-        Vector3 avoidanceVector = new Vector3();
-        foreach (Collider item in knownObstacles)
-        {
-            avoidanceVector += AvoidPoint(item.ClosestPoint(transform.position));
-        }
-
-        return avoidanceVector.normalized * avoidTerrainWeight;
     }
 
     private Vector3 ApplyVelLimits(Vector3 newVel)
@@ -194,16 +162,6 @@ public class Boids : MonoBehaviour
     private Vector3 Cohesion(Vector3 avgPos)
     {
         return (avgPos - transform.position).normalized * cohesionWeight;
-    }
-
-    private void OnTriggerEnter(Collider other)
-    {
-        if (!other.CompareTag("Boid")) knownObstacles.Add(other);
-    }
-
-    private void OnTriggerExit(Collider other)
-    {
-        if (!other.CompareTag("Boid")) knownObstacles.Remove(other);
     }
 
     private void OnDrawGizmos()

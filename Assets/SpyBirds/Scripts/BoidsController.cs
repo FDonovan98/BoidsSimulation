@@ -13,9 +13,9 @@ public class BoidsController : MonoBehaviour
 {
     [Header("Boid List")]
     [SerializeField]
-    const int maxBoids = 1500;
+    int maxBoids = 1500;
     List<int> availableIndex = new List<int>();
-    BoidData[] boidData = new BoidData[maxBoids];
+    BoidData[] boidData;
 
     [Header("Partition")]
     [SerializeField]
@@ -37,6 +37,7 @@ public class BoidsController : MonoBehaviour
     private void Awake()
     {
         partitions = new PartitionData[partitionNumber, partitionNumber, partitionNumber];
+        boidData = new BoidData[maxBoids];
 
 
         for (int i = 0; i < maxBoids; i++)
@@ -169,8 +170,7 @@ public class BoidsController : MonoBehaviour
 
     // On initilisation will be run every time a boid is added.
     // Could be optimised so for initilisation it is only run once all boidData are added.
-    // Currently only updates directly effected partitions as neighbouring partitions aren't taken into account when calculating flock values.
-    // This should be changed.
+
     private void UpdatePartitions(int boidID, Vector3Int newPartition)
     {
         Vector3Int partitionID = new Vector3Int(boidData[boidID].m_partitionID.x, boidData[boidID].m_partitionID.y, boidData[boidID].m_partitionID.z);

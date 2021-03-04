@@ -11,8 +11,6 @@ GameObject:
   - component: {fileID: 2247314265402581234}
   - component: {fileID: 4994773958629099106}
   - component: {fileID: 3339809888957967599}
-  - component: {fileID: 7904628860525297491}
-  - component: {fileID: 1304270453927767589}
   - component: {fileID: 4855707085686119793}
   m_Layer: 0
   m_Name: PRF_Boid
@@ -82,33 +80,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
---- !u!136 &7904628860525297491
-CapsuleCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7212746578717795957}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  m_Radius: 0.5
-  m_Height: 2
-  m_Direction: 1
-  m_Center: {x: 0, y: 0, z: 0}
---- !u!135 &1304270453927767589
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7212746578717795957}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 1.0000002
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &4855707085686119793
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -122,7 +93,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   debugMode: 0
-  awarenessRadius: 10
   maxSpeed: 6
   turnRate: 60
   acceleration: 2
