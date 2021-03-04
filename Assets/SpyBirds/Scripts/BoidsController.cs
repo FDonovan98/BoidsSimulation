@@ -8,6 +8,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class BoidsController : MonoBehaviour
 {
@@ -25,6 +26,9 @@ public class BoidsController : MonoBehaviour
     [SerializeField]
     int partitionUpdatesPerFrame = 10;
     PartitionData[,,] partitions;
+
+    [SerializeField]
+    Text text;
 
     ConcurrentQueue<UpdatePartitionQueue> updatePartQueue = new ConcurrentQueue<UpdatePartitionQueue>();
     List<UpdatePartitionQueue> updatePartitionIndex = new List<UpdatePartitionQueue>();
@@ -52,12 +56,13 @@ public class BoidsController : MonoBehaviour
 
         UpdatePartitionFlockData();
 
-        // Debug.Log(updatePartQueue.Count);
+        text.text = updatePartQueue.Count.ToString();
     }
 
     // May create multiple Tasks which check same positions.
     private async void UpdatePartitionFlockData()
     {
+
         await Task.Run(() =>
         {
             int i = 0;
@@ -78,7 +83,7 @@ public class BoidsController : MonoBehaviour
                     notifyBoidsPartitionUpdate(partitions[updateQueue.m_partitionID.x, updateQueue.m_partitionID.y, updateQueue.m_partitionID.z]);
                 }
 
-            } while (i < Mathf.Min(partitionUpdatesPerFrame, updatePartQueue.Count));
+            } while (true);
         });
     }
 

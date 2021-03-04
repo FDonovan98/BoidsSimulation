@@ -105,12 +105,15 @@ public class Boids : MonoBehaviour
 
         // Will cause clipping as no collision checks. 
         // But is done so no RigidBody is needed.
-        transform.position += velocity * Time.deltaTime;
-        transform.up = velocity.normalized;
+        Vector3 modifiedVel = velocity * Time.deltaTime;
+        Vector3 newPos = lastPos + modifiedVel;
 
         // Update distance travelled.
-        distanceTravelled += Vector3.Distance(transform.position, lastPos);
-        lastPos = transform.position;
+        distanceTravelled += modifiedVel.magnitude;
+
+        transform.position = newPos;
+        transform.up = velocity.normalized;
+        lastPos = newPos;
 
         if (distanceTravelled > updateDistance)
         {

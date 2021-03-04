@@ -21,7 +21,7 @@ public class FPSTracker : MonoBehaviour
         frameCount++;
         if (frameCount > 10)
         {
-            text.text = (20.0f / deltaTime).ToString();
+            text.text = "FPS: " + (20.0f / deltaTime).ToString();
             frameCount = 0;
             deltaTime = 0.0f;
         }
