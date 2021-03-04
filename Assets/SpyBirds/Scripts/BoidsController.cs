@@ -293,7 +293,7 @@ public class PartitionData
     public FlockValues flockValues;
     public FlockValues adjustedFlockValues;
     static Vector3Int m_partitionID;
-    static Vector3Int[] neighbouringIDs;
+    Vector3Int[] neighbouringIDs;
 
     public PartitionData(int boidID, Vector3Int partitionID, int numPartitions)
     {
@@ -339,13 +339,15 @@ public class PartitionData
 
         foreach (Vector3Int item in neighbouringIDs)
         {
-            if (partitionDatas[item.x, item.y, item.z] != null)
+            PartitionData itemPartitionData = partitionDatas[item.x, item.y, item.z];
+
+            if (itemPartitionData != null)
             {
-                avgPos += partitionDatas[item.x, item.y, item.z].flockValues.m_avgPos * partitionDatas[item.x, item.y, item.z].boidIDs.Count;
+                avgPos += itemPartitionData.flockValues.m_avgPos * itemPartitionData.boidIDs.Count;
 
-                avgVel += partitionDatas[item.x, item.y, item.z].flockValues.m_avgVel * partitionDatas[item.x, item.y, item.z].boidIDs.Count;
+                avgVel += itemPartitionData.flockValues.m_avgVel * itemPartitionData.boidIDs.Count;
 
-                totalCount += partitionDatas[item.x, item.y, item.z].boidIDs.Count;
+                totalCount += itemPartitionData.boidIDs.Count;
             }
         }
 

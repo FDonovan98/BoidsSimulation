@@ -227,12 +227,11 @@ public class Boids : MonoBehaviour
         if (!other.CompareTag("Boid")) knownObstacles.Remove(other);
     }
 
-    private void OnDrawGizmosSelected()
+    private void OnDrawGizmos()
     {
         if (debugMode)
         {
             Gizmos.color = Color.red;
-            Debug.Log("avgPos: " + flockValues.m_avgPos);
             Gizmos.DrawSphere(flockValues.m_avgPos, 1f);
         }
     }
