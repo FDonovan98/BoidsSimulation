@@ -23,10 +23,14 @@ public class Boids : MonoBehaviour
 
     [Header("Flock Behaviour")]
     [SerializeField]
-    float seperationDistance = 4.0f;
-    [SerializeField]
     [Range(0.0f, 1.0f)]
     private float targetWeight = 1.0f;
+    [SerializeField]
+    bool targetObject = false;
+    [SerializeField]
+    Target target;
+    [SerializeField]
+    float seperationDistance = 4.0f;
     [SerializeField]
     [Range(0.0f, 1.0f)]
     float cohesionWeight = 1.0f;
@@ -45,7 +49,9 @@ public class Boids : MonoBehaviour
     // The distance the boid should cover before reporting it's updated position to the BoidController.
     float updateDistance;
     float distanceTravelled = 0.0f;
+    [HideInInspector]
     public Vector3 lastPos;
+    [HideInInspector]
     public Vector3 velocity;
     Vector3 targetVel;
 
@@ -112,7 +118,8 @@ public class Boids : MonoBehaviour
         distanceTravelled += modifiedVel.magnitude;
 
         transform.position = newPos;
-        transform.up = velocity.normalized;
+        // transform.up = velocity.normalized;
+        transform.up = velocity;
         lastPos = newPos;
 
         if (distanceTravelled > updateDistance)
@@ -127,6 +134,11 @@ public class Boids : MonoBehaviour
         // Vector3 target = avgPos + avgVel;
         // target -= transform.position;
         // return target * targetWeight;
+
+        if (targetObject && target != null)
+        {
+            return (target.lastPos - lastPos).normalized * maxSpeed * targetWeight;
+        }
 
         return velocity.normalized * maxSpeed * targetWeight;
     }
