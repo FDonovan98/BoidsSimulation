@@ -53,7 +53,9 @@ public class Boids : MonoBehaviour
     public Vector3 lastPos;
     [HideInInspector]
     public Vector3 velocity;
+
     Vector3 targetVel;
+    Vector3 modifiedVel;
 
     // Start is called before the first frame update
     void Start()
@@ -105,13 +107,10 @@ public class Boids : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update()
+    void FixedUpdate()
     {
-        velocity = Vector3.RotateTowards(velocity, targetVel, turnRate * Mathf.Deg2Rad * Time.deltaTime, acceleration * Time.deltaTime);
-
         // Will cause clipping as no collision checks. 
         // But is done so no RigidBody is needed.
-        Vector3 modifiedVel = velocity * Time.deltaTime;
         Vector3 newPos = lastPos + modifiedVel;
 
         // Update distance travelled.
@@ -127,6 +126,12 @@ public class Boids : MonoBehaviour
             distanceTravelled = 0.0f;
             boidsController.UpdateBoidPos(id);
         }
+    }
+
+    public void RecalculateVelocity()
+    {
+        velocity = Vector3.RotateTowards(velocity, targetVel, turnRate * Mathf.Deg2Rad, acceleration);
+        modifiedVel = velocity * Time.fixedDeltaTime;
     }
 
     private Vector3 Target()

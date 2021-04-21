@@ -16,7 +16,7 @@ public class BoidsController : MonoBehaviour
     [SerializeField]
     int maxBoids = 1500;
     List<int> availableIndex = new List<int>();
-    BoidData[] boidData;
+    List<BoidData> boidData = new List<BoidData>();
 
     [Header("Partition")]
     [SerializeField]
@@ -24,7 +24,8 @@ public class BoidsController : MonoBehaviour
     [SerializeField]
     int partitionNumber = 70;
     [SerializeField]
-    int partitionUpdatesPerFrame = 10;
+    int agentUpdatesPerFrame = 100;
+    int lastAgentUpdated = 0;
     PartitionData[,,] partitions;
 
     [SerializeField]
@@ -40,7 +41,6 @@ public class BoidsController : MonoBehaviour
     private void Awake()
     {
         partitions = new PartitionData[partitionNumber, partitionNumber, partitionNumber];
-        boidData = new BoidData[maxBoids];
 
         for (int i = 0; i < maxBoids; i++)
         {
@@ -57,6 +57,19 @@ public class BoidsController : MonoBehaviour
         UpdatePartitionFlockData();
 
         text.text = updatePartQueue.Count.ToString();
+
+        for (int i = 0; i < agentUpdatesPerFrame; i++)
+        {
+            lastAgentUpdated++;
+            if (lastAgentUpdated >= boidData.Count)
+            {
+                lastAgentUpdated = 0;
+            }
+
+            Debug.Log(boidData[lastAgentUpdated]);
+            Debug.Log(lastAgentUpdated);
+            boidData[lastAgentUpdated].m_boidScript.RecalculateVelocity();
+        }
     }
 
     // May create multiple Tasks which check same positions.
@@ -112,7 +125,7 @@ public class BoidsController : MonoBehaviour
             int id = availableIndex[0];
             availableIndex.RemoveAt(0);
 
-            boidData[id] = new BoidData(id, boidScript);
+            boidData.Add(new BoidData(id, boidScript));
             UpdateBoidPos(id, true);
             updateDistance = partitionLength / 2;
             return id;
@@ -131,7 +144,7 @@ public class BoidsController : MonoBehaviour
         if (isInitialisation)
         {
             // This should be refactored into a standalone function as is duplicated code.
-            boidData[boidID].m_partitionID = partition;
+            boidData[boidID] = new BoidData(boidID, boidData[boidID].m_boidScript, partition);
 
             if (partitions[partition.x, partition.y, partition.z] == null)
             {
@@ -194,7 +207,7 @@ public class BoidsController : MonoBehaviour
         // This should be refactored into a standalone function as is duplicated code.
         // Update new partition, adding boid to id list.
         // Notify subscribed boidData partitions have updated
-        boidData[boidID].m_partitionID = partitionID;
+        boidData[boidID] = new BoidData(boidID, boidData[boidID].m_boidScript, partitionID);
         if (partitions[newPartition.x, newPartition.y, newPartition.z] == null)
         {
             partitions[newPartition.x, newPartition.y, newPartition.z] = new PartitionData(boidID, newPartition, partitionNumber);
@@ -331,7 +344,7 @@ public class PartitionData
         adjustedFlockValues = new FlockValues(avgPos / totalCount, avgVel / totalCount, posArray);
     }
 
-    public void UpdateFlockValues(BoidData[] boidData)
+    public void UpdateFlockValues(List<BoidData> boidData)
     {
         if (boidIDs.Count < 1) return;
 
@@ -367,5 +380,12 @@ public struct BoidData
         m_id = id;
         m_boidScript = boidScript;
         m_partitionID = Vector3Int.zero;
+    }
+
+    public BoidData(int id, Boids boidScript, Vector3Int partition)
+    {
+        m_id = id;
+        m_boidScript = boidScript;
+        m_partitionID = partition;
     }
 }
