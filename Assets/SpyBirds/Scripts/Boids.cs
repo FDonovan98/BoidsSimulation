@@ -64,6 +64,7 @@ public class Boids : MonoBehaviour
 
         boidsController.notifyBoidsPartitionUpdate += FlockValuesUpdated;
         id = boidsController.RegisterBoid(this, out updateDistance);
+        updateDistance += Random.Range(0, updateDistance) - updateDistance / 2;
     }
 
     private void InitialiseVariables()
@@ -107,19 +108,18 @@ public class Boids : MonoBehaviour
     }
 
     // Update is called once per frame
-    void FixedUpdate()
+    void Update()
     {
         // Will cause clipping as no collision checks. 
         // But is done so no RigidBody is needed.
         Vector3 newPos = lastPos + modifiedVel;
+        transform.position = newPos;
+        lastPos = newPos;
+
+        transform.up = velocity;
 
         // Update distance travelled.
         distanceTravelled += modifiedVel.magnitude;
-
-        transform.position = newPos;
-        // transform.up = velocity.normalized;
-        transform.up = velocity;
-        lastPos = newPos;
 
         if (distanceTravelled > updateDistance)
         {
@@ -131,7 +131,7 @@ public class Boids : MonoBehaviour
     public void RecalculateVelocity()
     {
         velocity = Vector3.RotateTowards(velocity, targetVel, turnRate * Mathf.Deg2Rad, acceleration);
-        modifiedVel = velocity * Time.fixedDeltaTime;
+        modifiedVel = velocity * Time.deltaTime;
     }
 
     private Vector3 Target()

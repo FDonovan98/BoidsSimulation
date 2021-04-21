@@ -66,8 +66,6 @@ public class BoidsController : MonoBehaviour
                 lastAgentUpdated = 0;
             }
 
-            Debug.Log(boidData[lastAgentUpdated]);
-            Debug.Log(lastAgentUpdated);
             boidData[lastAgentUpdated].m_boidScript.RecalculateVelocity();
         }
     }
