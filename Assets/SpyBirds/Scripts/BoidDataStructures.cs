@@ -122,9 +122,9 @@ internal class PartitionCollection
             tempData.CalculateAdjustedFlockValues(partitionData);
 
             // Update boid target velocities.
-            foreach (int item in tempData.boidIDs)
+            for (int j = 0; j < tempData.boidIDs.Count; j++)
             {
-                boids[item].UpdateFlockValues(tempData.flockValues, tempData.adjustedFlockValues);
+                boids[tempData.boidIDs[j]].UpdateFlockValues(tempData.flockValues, tempData.adjustedFlockValues);
             }
         }
 
@@ -325,9 +325,11 @@ public class Boid
     {
         Vector3 separationVector = new Vector3();
 
-        foreach (Vector3 otherBoidPos in flockValues.m_posArray)
+        if (flockValues.m_posArray == null) return Vector3.zero;
+
+        for (int i = 0; i < flockValues.m_posArray.Length; i++)
         {
-            separationVector += AvoidPoint(otherBoidPos);
+            separationVector += AvoidPoint(flockValues.m_posArray[i]);
         }
 
         return separationVector * boidVariables.separationWeight;

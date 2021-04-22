@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Threading.Tasks;
+using UnityEngine;
 using Random = UnityEngine.Random;
 
 public class BoidManager : MonoBehaviour
@@ -8,6 +9,7 @@ public class BoidManager : MonoBehaviour
     float partitionLength = 20.0f;
     [SerializeField]
     int numOfPartitions = 70;
+    Vector3 position;
 
     [Header("Boid Variables")]
     // Movement variables.
@@ -40,6 +42,7 @@ public class BoidManager : MonoBehaviour
 
     private void Start()
     {
+        position = transform.position;
         BuildAllBoids();
         BuildPartitionStructure();
     }
@@ -86,7 +89,7 @@ public class BoidManager : MonoBehaviour
     private Vector3Int CalculatePartition(Vector3 boidPos)
     {
         // Calculate partition number relative to controller position.
-        Vector3 partitionFloat = (transform.position - boidPos) / partitionLength;
+        Vector3 partitionFloat = (position - boidPos) / partitionLength;
         // Recentre so controller position is at the centre of the partitions.
         partitionFloat += new Vector3(numOfPartitions / 2, numOfPartitions / 2, numOfPartitions / 2);
         Vector3Int partition = Vector3Int.FloorToInt(partitionFloat);
@@ -106,17 +109,26 @@ public class BoidManager : MonoBehaviour
 
     private void Update()
     {
+        position = transform.position;
         UpdateBoid();
         partitionCollection.UpdatePartitions();
     }
 
-    private void UpdateBoid()
+    private async void UpdateBoid()
     {
+        float deltaTime = Time.deltaTime;
+        await Task.Run(() =>
+        {
+            foreach (Boid item in boids)
+            {
+                item.RecalculateVelocity(deltaTime);
+                UpdateBoidPartition(item);
+            }
+        });
+
         foreach (Boid item in boids)
         {
-            item.RecalculateVelocity(Time.deltaTime);
             item.MoveBoid(Time.deltaTime);
-            UpdateBoidPartition(item);
         }
     }
 
