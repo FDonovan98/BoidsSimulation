@@ -62,8 +62,11 @@ public class Boids : MonoBehaviour
     {
         InitialiseVariables();
 
+        // Registers this boid with the parent controller. 
         boidsController.notifyBoidsPartitionUpdate += FlockValuesUpdated;
         id = boidsController.RegisterBoid(this, out updateDistance);
+
+        // Randomisation on update distance to help space out partition update calls from the same flock.
         updateDistance += Random.Range(0, updateDistance) - updateDistance / 2;
     }
 
@@ -78,6 +81,7 @@ public class Boids : MonoBehaviour
 
     // Check if boid id is in list of applicable ids.
     // If it is update flock values.
+    // Bound to boidsController.notifyBoidsPartitionUpdate delegate, is called when a partitions values have been updated.
     void FlockValuesUpdated(PartitionData partitionData)
     {
         if (partitionData.boidIDs.Contains(id))
@@ -92,19 +96,24 @@ public class Boids : MonoBehaviour
                 separationVector += AvoidPoint(otherBoidPos);
             }
 
-            targetVel = new Vector3();
-
-            targetVel += Target();
-
-            // Flock behaviour.
-            targetVel += Cohesion(flockValues.m_avgPos);
-
-            targetVel += Seperation(separationVector);
-
-            targetVel += Alignment(flockValues.m_avgVel);
-
-            targetVel = Vector3.ClampMagnitude(targetVel, maxSpeed);
+            CalculateTargetVel();
         }
+    }
+
+    void CalculateTargetVel()
+    {
+        targetVel = new Vector3();
+
+        // Boid steering behaviours.
+        targetVel += Target();
+
+        targetVel += Cohesion(flockValues.m_avgPos);
+
+        targetVel += Seperation(separationVector);
+
+        targetVel += Alignment(flockValues.m_avgVel);
+
+        targetVel = Vector3.ClampMagnitude(targetVel, maxSpeed);
     }
 
     // Update is called once per frame
@@ -123,23 +132,21 @@ public class Boids : MonoBehaviour
 
         if (distanceTravelled > updateDistance)
         {
-            distanceTravelled = 0.0f;
             boidsController.UpdateBoidPos(id);
+            distanceTravelled = 0.0f;
         }
     }
 
+    // Called by the boid controller
     public void RecalculateVelocity()
     {
         velocity = Vector3.RotateTowards(velocity, targetVel, turnRate * Mathf.Deg2Rad, acceleration);
         modifiedVel = velocity * Time.deltaTime;
     }
 
+    // Move to a specific target, or continue in the current direction if there is no target.
     private Vector3 Target()
     {
-        // Vector3 target = avgPos + avgVel;
-        // target -= transform.position;
-        // return target * targetWeight;
-
         if (targetObject && target != null)
         {
             return (target.lastPos - lastPos).normalized * maxSpeed * targetWeight;
@@ -148,11 +155,13 @@ public class Boids : MonoBehaviour
         return velocity.normalized * maxSpeed * targetWeight;
     }
 
+    // Align own velocity with the flocks velocity.
     private Vector3 Alignment(Vector3 avgVel)
     {
         return (avgVel - velocity).normalized * alignmentWeight;
     }
 
+    // Maintain distance from other boids in the flock.
     private Vector3 Seperation(Vector3 separationVector)
     {
         return separationVector * seperationWeight;
@@ -164,15 +173,13 @@ public class Boids : MonoBehaviour
 
         if (dist < seperationDistance && dist != 0)
         {
-            // Equation is gained through trial and error.
-            // return (transform.position - posToAvoid) * (seperationDistance - dist);
-
             return (lastPos - posToAvoid).normalized / Mathf.Pow(dist, 2);
         }
 
         return Vector3.zero;
     }
 
+    // Moves the boid to the centre of the flock.
     private Vector3 Cohesion(Vector3 avgPos)
     {
         return (avgPos - lastPos).normalized * cohesionWeight;

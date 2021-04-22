@@ -4,6 +4,7 @@
 // References:
 // Description: Controller class for boid flocks. Should handle spatial partitioning.
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -16,7 +17,7 @@ public class BoidsController : MonoBehaviour
     [SerializeField]
     int maxBoids = 1500;
     List<int> availableIndex = new List<int>();
-    List<BoidData> boidData = new List<BoidData>();
+    BoidData[] boidData;
 
     [Header("Partition")]
     [SerializeField]
@@ -31,16 +32,21 @@ public class BoidsController : MonoBehaviour
     [SerializeField]
     Text text;
 
+    // ConcurrentQueue is thread safe, allowing us to use multithreading.
     ConcurrentQueue<UpdatePartitionQueue> updatePartQueue = new ConcurrentQueue<UpdatePartitionQueue>();
     List<UpdatePartitionQueue> updatePartitionIndex = new List<UpdatePartitionQueue>();
-
-    // Update flock values delegate.
     public delegate void NotifyBoidsPartitionUpdate(PartitionData partitionData);
     public NotifyBoidsPartitionUpdate notifyBoidsPartitionUpdate;
 
     private void Awake()
     {
+        InitialiseVariables();
+    }
+
+    private void InitialiseVariables()
+    {
         partitions = new PartitionData[partitionNumber, partitionNumber, partitionNumber];
+        boidData = new BoidData[maxBoids];
 
         for (int i = 0; i < maxBoids; i++)
         {
@@ -48,20 +54,20 @@ public class BoidsController : MonoBehaviour
         }
     }
 
-    // Iterates through updatePartitionQueue and updatePartitionIndex.
-    // Will need to call notifyBoidsPartitionUpdate for each updatePartitionQueue.
+    // Updates partition data if there are pending updates.
+    // Then triggers target velocity recalculations on the boids.
     private void Update()
     {
         UpdatePartitionIDLists();
 
         UpdatePartitionFlockData();
 
-        text.text = updatePartQueue.Count.ToString();
+        // text.text = updatePartQueue.Count.ToString();
 
         for (int i = 0; i < agentUpdatesPerFrame; i++)
         {
             lastAgentUpdated++;
-            if (lastAgentUpdated >= boidData.Count)
+            if (lastAgentUpdated >= boidData.Length || boidData[lastAgentUpdated].m_boidScript == null)
             {
                 lastAgentUpdated = 0;
             }
@@ -70,13 +76,11 @@ public class BoidsController : MonoBehaviour
         }
     }
 
-    // May create multiple Tasks which check same positions.
+    // Recalculates flock values for queued partitions and triggers notifyBoidsPartitionUpdate delegate so boids are aware of updated data.
     private async void UpdatePartitionFlockData()
     {
-
         await Task.Run(() =>
         {
-            int i = 0;
             do
             {
                 if (updatePartQueue.Count == 0) return;
@@ -84,7 +88,6 @@ public class BoidsController : MonoBehaviour
                 UpdatePartitionQueue updateQueue;
                 if (updatePartQueue.TryDequeue(out updateQueue))
                 {
-                    i++;
                     partitions[updateQueue.m_partitionID.x, updateQueue.m_partitionID.y, updateQueue.m_partitionID.z].UpdateFlockValues(boidData);
 
                     partitions[updateQueue.m_partitionID.x, updateQueue.m_partitionID.y, updateQueue.m_partitionID.z].CalculateAdjustedFlockValues(partitions);
@@ -98,20 +101,16 @@ public class BoidsController : MonoBehaviour
         });
     }
 
+    // Iterates through updatePartitionIndex to update all partitions with boid id's moving between partitions.
     private void UpdatePartitionIDLists()
     {
-        // await Task.Run(() =>
-        // {
-
         for (int i = 0; i < updatePartitionIndex.Count; i++)
         {
             partitions[updatePartitionIndex[i].m_partitionID.x, updatePartitionIndex[i].m_partitionID.y, updatePartitionIndex[i].m_partitionID.z].UpdateIDList(updatePartitionIndex[i].m_boidID, updatePartitionIndex[i].m_removeID);
 
             updatePartitionIndex.RemoveAt(i);
-            i--;
+            i++;
         }
-
-        // });
     }
 
     // Called by boidData to register themselves with the BoidController.
@@ -123,7 +122,7 @@ public class BoidsController : MonoBehaviour
             int id = availableIndex[0];
             availableIndex.RemoveAt(0);
 
-            boidData.Add(new BoidData(id, boidScript));
+            boidData[id] = new BoidData(id, boidScript);
             UpdateBoidPos(id, true);
             updateDistance = partitionLength / 2;
             return id;
@@ -134,6 +133,8 @@ public class BoidsController : MonoBehaviour
         return int.MaxValue;
     }
 
+    // Called by boids once they have moved their updateDistance.
+    // Recalculates the boids partition and queues a partition update if it has changed partitions.
     public void UpdateBoidPos(int boidID, bool isInitialisation = false)
     {
         Vector3Int partition = CalculatePartition(boidData[boidID].m_boidScript.lastPos);
@@ -142,7 +143,7 @@ public class BoidsController : MonoBehaviour
         if (isInitialisation)
         {
             // This should be refactored into a standalone function as is duplicated code.
-            boidData[boidID] = new BoidData(boidID, boidData[boidID].m_boidScript, partition);
+            boidData[boidID].m_partitionID = partition;
 
             if (partitions[partition.x, partition.y, partition.z] == null)
             {
@@ -164,9 +165,9 @@ public class BoidsController : MonoBehaviour
     // Could be improved to use contoller coords as origin.
     private Vector3Int CalculatePartition(Vector3 boidPos)
     {
-        // Calculate partition number relative to this.position.
+        // Calculate partition number relative to controller position.
         Vector3 partitionFloat = (transform.position - boidPos) / partitionLength;
-        // Recenter so this.position is at the centre of the partitions.
+        // Recentre so controller position is at the centre of the partitions.
         partitionFloat += new Vector3(partitionNumber / 2, partitionNumber / 2, partitionNumber / 2);
         Vector3Int partition = Vector3Int.FloorToInt(partitionFloat);
 
@@ -183,29 +184,23 @@ public class BoidsController : MonoBehaviour
         return partition;
     }
 
-
-    // On initilisation will be run every time a boid is added.
-    // Could be optimised so for initilisation it is only run once all boidData are added.
-
+    // Queue's a new partition update.
+    // On initialisation will be run every time a boid is added.
+    // Could be optimised so for initialisation it is only run once all boidData are added.
     private void UpdatePartitions(int boidID, Vector3Int newPartition)
     {
-        Vector3Int partitionID = new Vector3Int(boidData[boidID].m_partitionID.x, boidData[boidID].m_partitionID.y, boidData[boidID].m_partitionID.z);
-
+        // When the partition hasn't changed we just need to update it's current partition.
         if (boidData[boidID].m_partitionID == newPartition)
         {
-            QueueUpdateData(partitionID);
+            QueueUpdateData(boidData[boidID].m_partitionID);
             return;
         }
 
-        // Update old partition, removing boid from id list.
-        // Notify subscribed boidData partitions have updated
+        // Queue an update to remove boid from id list for old partition.
+        QueueUpdateData(boidData[boidID].m_partitionID, boidID, true);
 
-        QueueUpdateData(partitionID, boidID, true);
-
-        // This should be refactored into a standalone function as is duplicated code.
-        // Update new partition, adding boid to id list.
-        // Notify subscribed boidData partitions have updated
-        boidData[boidID] = new BoidData(boidID, boidData[boidID].m_boidScript, partitionID);
+        // Queue an update to add boid to id list for new partition.
+        // Creates the partition if it doesn't yet exist.
         if (partitions[newPartition.x, newPartition.y, newPartition.z] == null)
         {
             partitions[newPartition.x, newPartition.y, newPartition.z] = new PartitionData(boidID, newPartition, partitionNumber);
@@ -216,11 +211,13 @@ public class BoidsController : MonoBehaviour
         }
     }
 
+    // Queue's an update for a specific partition.
     void QueueUpdateData(Vector3Int partitionID)
     {
         updatePartQueue.Enqueue(new UpdatePartitionQueue(partitionID));
     }
 
+    // Queue's an ID list update for the partition, then queue's an update for the partition data.
     void QueueUpdateData(Vector3Int partitionID, int boidID, bool idIsBeingRemoved)
     {
         updatePartitionIndex.Add(new UpdatePartitionQueue(partitionID, boidID, idIsBeingRemoved));
@@ -289,6 +286,12 @@ public class PartitionData
         boidIDs.Add(boidID);
 
         m_partitionID = partitionID;
+
+        CalculateNeighbours(partitionID, numPartitions);
+    }
+
+    private void CalculateNeighbours(Vector3Int partitionID, int numPartitions)
+    {
         List<Vector3Int> neighbours = new List<Vector3Int>();
         if (partitionID.x != 0)
         {
@@ -318,6 +321,7 @@ public class PartitionData
         neighbouringIDs = neighbours.ToArray();
     }
 
+    // Adjusted flock values take into account the neighbouring partitions.
     public void CalculateAdjustedFlockValues(PartitionData[,,] partitionDatas)
     {
         Vector3 avgPos = flockValues.m_avgPos * boidIDs.Count;
@@ -342,7 +346,8 @@ public class PartitionData
         adjustedFlockValues = new FlockValues(avgPos / totalCount, avgVel / totalCount, posArray);
     }
 
-    public void UpdateFlockValues(List<BoidData> boidData)
+    // Update values for this partition.
+    public void UpdateFlockValues(BoidData[] boidData)
     {
         if (boidIDs.Count < 1) return;
 
