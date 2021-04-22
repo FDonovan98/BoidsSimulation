@@ -112,16 +112,6 @@ public class BoidManager : MonoBehaviour
 
     private void UpdateBoid()
     {
-        boids[0].boidVariables = new BoidVariables(maxSpeed,
-            turnRate,
-            acceleration,
-            target,
-            separationDistance,
-            targetWeight,
-            separationWeight,
-            cohesionWeight,
-            alignmentWeight);
-
         foreach (Boid item in boids)
         {
             item.RecalculateVelocity(Time.deltaTime);
