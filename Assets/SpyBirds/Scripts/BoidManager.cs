@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using Random = UnityEngine.Random;
 
 public class BoidManager : MonoBehaviour
@@ -56,12 +54,7 @@ public class BoidManager : MonoBehaviour
         {
             // TODO: Set start position.
             Vector3 startPos = Vector3.zero;
-
-            boids[i] = new Boid(boidObjects[i],
-                startPos,
-                CalculatePartition(startPos),
-                CalculateStartVel(),
-                maxSpeed,
+            BoidVariables boidVariables = new BoidVariables(maxSpeed,
                 turnRate,
                 acceleration,
                 target,
@@ -70,6 +63,12 @@ public class BoidManager : MonoBehaviour
                 separationWeight,
                 cohesionWeight,
                 alignmentWeight);
+
+            boids[i] = new Boid(i, boidObjects[i],
+                startPos,
+                CalculatePartition(startPos),
+                CalculateStartVel(),
+                boidVariables);
         }
     }
 
@@ -113,9 +112,19 @@ public class BoidManager : MonoBehaviour
 
     private void UpdateBoid()
     {
+        boids[0].boidVariables = new BoidVariables(maxSpeed,
+            turnRate,
+            acceleration,
+            target,
+            separationDistance,
+            targetWeight,
+            separationWeight,
+            cohesionWeight,
+            alignmentWeight);
+
         foreach (Boid item in boids)
         {
-            item.RecalculateVelocity();
+            item.RecalculateVelocity(Time.deltaTime);
             item.MoveBoid(Time.deltaTime);
             UpdateBoidPartition(item);
         }
@@ -128,240 +137,32 @@ public class BoidManager : MonoBehaviour
 
         partitionCollection.MoveBoid(boid.ID, partition);
     }
-}
 
-internal class PartitionCollection
-{
-    private int numOfPartitions;
-    private PartitionData[,,] partitionData;
-
-    private Boid[] boids;
-
-    private List<Vector3Int> partitionsToUpdate = new List<Vector3Int>();
-
-    public PartitionCollection(int numOfPartitions, Boid[] boids)
+    private void OnDrawGizmosSelected()
     {
-        this.numOfPartitions = numOfPartitions;
-        this.boids = boids;
+        Gizmos.color = new Color(1.0f, 0.0f, 0.0f, 0.1f);
 
-        partitionData = new PartitionData[numOfPartitions, numOfPartitions, numOfPartitions];
-    }
-
-    // TODO: Boid leaving partition collection.
-    public void MoveBoid(int boidID, Vector3Int newPartition)
-    {
-        Vector3Int oldPartition = boids[boidID].partitionID;
-
-        if (partitionData[oldPartition.x, oldPartition.y, oldPartition.z] != null)
+        Vector3 startPos = transform.position - new Vector3(numOfPartitions / 2 * partitionLength, numOfPartitions / 2 * partitionLength, numOfPartitions / 2 * partitionLength);
+        for (int x = 0; x < numOfPartitions; x++)
         {
-            partitionData[oldPartition.x, oldPartition.y, oldPartition.z].UpdateIDList(boidID, true);
-
-            UpdatePartitionQueue(oldPartition);
-        }
-
-        if (partitionData[newPartition.x, newPartition.y, newPartition.z] == null)
-        {
-            partitionData[newPartition.x, newPartition.y, newPartition.z] = new PartitionData(boidID, newPartition, numOfPartitions);
-        }
-
-        partitionData[newPartition.x, newPartition.y, newPartition.z].UpdateIDList(boidID, false);
-
-        UpdatePartitionQueue(newPartition);
-    }
-
-    private void UpdatePartitionQueue(Vector3Int partition)
-    {
-
-        if (!partitionsToUpdate.Contains(partition)) partitionsToUpdate.Add(partition);
-    }
-
-    public void UpdatePartitions()
-    {
-        if (partitionsToUpdate.Count == 0) return;
-
-        for (int i = 0; i < partitionsToUpdate.Count; i++)
-        {
-            partitionData[partitionsToUpdate[i].x, partitionsToUpdate[i].y, partitionsToUpdate[i].z].UpdateFlockValues(boids);
-        }
-
-        for (int i = 0; i < partitionsToUpdate.Count; i++)
-        {
-            partitionData[partitionsToUpdate[i].x, partitionsToUpdate[i].y, partitionsToUpdate[i].z].CalculateAdjustedFlockValues(partitionData);
-        }
-
-        partitionsToUpdate = new List<Vector3Int>();
-    }
-}
-
-public class PartitionData
-{
-    public List<int> boidIDs = new List<int>();
-    public FlockValues flockValues;
-    public FlockValues adjustedFlockValues;
-    static Vector3Int m_partitionID;
-    Vector3Int[] neighbouringIDs;
-
-    public PartitionData(int boidID, Vector3Int partitionID, int numPartitions)
-    {
-        boidIDs = new List<int>();
-        boidIDs.Add(boidID);
-
-        m_partitionID = partitionID;
-
-        CalculateNeighbours(partitionID, numPartitions);
-    }
-
-    private void CalculateNeighbours(Vector3Int partitionID, int numPartitions)
-    {
-        List<Vector3Int> neighbours = new List<Vector3Int>();
-        if (partitionID.x != 0)
-        {
-            neighbours.Add(new Vector3Int(partitionID.x - 1, partitionID.y, partitionID.z));
-        }
-        if (partitionID.x < numPartitions - 1)
-        {
-            neighbours.Add(new Vector3Int(partitionID.x + 1, partitionID.y, partitionID.z));
-        }
-        if (partitionID.y != 0)
-        {
-            neighbours.Add(new Vector3Int(partitionID.x, partitionID.y - 1, partitionID.z));
-        }
-        if (partitionID.y < numPartitions - 1)
-        {
-            neighbours.Add(new Vector3Int(partitionID.x, partitionID.y + 1, partitionID.z));
-        }
-        if (partitionID.z != 0)
-        {
-            neighbours.Add(new Vector3Int(partitionID.x, partitionID.y, partitionID.z - 1));
-        }
-        if (partitionID.z < numPartitions - 1)
-        {
-            neighbours.Add(new Vector3Int(partitionID.x, partitionID.y, partitionID.z + 1));
-        }
-
-        neighbouringIDs = neighbours.ToArray();
-    }
-
-    // Adjusted flock values take into account the neighbouring partitions.
-    public void CalculateAdjustedFlockValues(PartitionData[,,] partitionDatas)
-    {
-        Vector3 avgPos = flockValues.m_avgPos * boidIDs.Count;
-        Vector3 avgVel = flockValues.m_avgVel * boidIDs.Count;
-        Vector3[] posArray = flockValues.m_posArray;
-        int totalCount = boidIDs.Count;
-
-        foreach (Vector3Int item in neighbouringIDs)
-        {
-            PartitionData itemPartitionData = partitionDatas[item.x, item.y, item.z];
-
-            if (itemPartitionData != null)
+            for (int y = 0; y < numOfPartitions; y++)
             {
-                avgPos += itemPartitionData.flockValues.m_avgPos * itemPartitionData.boidIDs.Count;
-
-                avgVel += itemPartitionData.flockValues.m_avgVel * itemPartitionData.boidIDs.Count;
-
-                totalCount += itemPartitionData.boidIDs.Count;
+                for (int z = 0; z < numOfPartitions; z++)
+                {
+                    Gizmos.DrawWireCube(startPos + new Vector3(x * partitionLength + partitionLength / 2, y * partitionLength + partitionLength / 2, z * partitionLength + partitionLength / 2), new Vector3(partitionLength, partitionLength, partitionLength)
+                    );
+                }
             }
         }
 
-        adjustedFlockValues = new FlockValues(avgPos / totalCount, avgVel / totalCount, posArray);
-    }
-
-    // Update values for this partition.
-    public void UpdateFlockValues(Boid[] boids)
-    {
-        if (boidIDs.Count < 1) return;
-
-        Vector3 avgPos = new Vector3();
-        Vector3 avgVel = new Vector3();
-        List<Vector3> posArray = new List<Vector3>();
-
-        for (int i = 0; i < boidIDs.Count; i++)
+        foreach (Boid item in boids)
         {
-            posArray.Add(boids[boidIDs[i]].lastPos);
-            avgPos += boids[boidIDs[i]].lastPos;
-            avgVel += boids[boidIDs[i]].vel;
+            Gizmos.color = Color.blue;
+            Gizmos.DrawLine(item.lastPos, item.lastPos + (5 * item.vel));
+            Gizmos.color = Color.red;
+            Gizmos.DrawLine(item.lastPos, item.lastPos + (3 * item.targetVel));
+
+            Gizmos.DrawSphere(item.flockValues.m_avgPos, 1.0f);
         }
-
-        flockValues = new FlockValues(avgPos / boidIDs.Count, avgVel / boidIDs.Count, posArray.ToArray());
-    }
-
-    public void UpdateIDList(int boidID, bool idIsBeingRemoved)
-    {
-        if (idIsBeingRemoved) boidIDs.Remove(boidID);
-        else boidIDs.Add(boidID);
-    }
-}
-
-public class Boid
-{
-    // Movement variables.
-    private float maxSpeed;
-    private float turnRate;
-    private float acceleration;
-
-    // Steering variables.
-    private Target target;
-    private float separationDistance;
-
-    // Steering weights.
-    private float targetWeight;
-    private float separationWeight;
-    private float cohesionWeight;
-    private float alignmentWeight;
-
-    // Identifying info.
-    public int ID;
-    public Vector3Int partitionID;
-    private Transform transform;
-
-    // Calculated values.
-    public Vector3 lastPos;
-    public Vector3 vel;
-    private Vector3 targetVel;
-
-    public Boid(
-        Transform transform,
-        Vector3 startPos,
-        Vector3Int partitionID,
-        Vector3 startVel,
-        float maxSpeed,
-        float turnRate,
-        float acceleration,
-        Target target,
-        float separationDistance,
-        float targetWeight,
-        float separationWeight,
-        float cohesionWeight,
-        float alignmentWeight)
-    {
-        this.transform = transform;
-        this.lastPos = startPos;
-        this.partitionID = partitionID;
-        this.vel = startVel;
-        this.targetVel = startVel;
-        this.maxSpeed = maxSpeed;
-        this.turnRate = turnRate;
-        this.acceleration = acceleration;
-        this.target = target;
-        this.separationDistance = separationDistance;
-        this.targetWeight = targetWeight;
-        this.separationWeight = separationWeight;
-        this.cohesionWeight = cohesionWeight;
-        this.alignmentWeight = alignmentWeight;
-
-        transform.position = lastPos;
-    }
-
-    public void RecalculateVelocity()
-    {
-        vel = Vector3.RotateTowards(vel, targetVel, turnRate * Mathf.Deg2Rad, acceleration);
-    }
-
-    internal void MoveBoid(float timeModifier)
-    {
-        lastPos += vel * timeModifier;
-        transform.position = lastPos;
-        transform.up = vel;
     }
 }
