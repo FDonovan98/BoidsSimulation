@@ -137,7 +137,8 @@ public class Boids : MonoBehaviour
         }
     }
 
-    // Called by the boid controller
+    // Called by the boid controller to reduce work done per frame.
+    // Attempt at improving scalability.
     public void RecalculateVelocity()
     {
         velocity = Vector3.RotateTowards(velocity, targetVel, turnRate * Mathf.Deg2Rad, acceleration);
