@@ -55,8 +55,7 @@ public class BoidManager : MonoBehaviour
 
         for (int i = 0; i < boids.Length; i++)
         {
-            // TODO: Set start position.
-            Vector3 startPos = Vector3.zero;
+            Vector3 startPos = CalculateStartPosition();
             BoidVariables boidVariables = new BoidVariables(maxSpeed,
                 turnRate,
                 acceleration,
@@ -73,6 +72,12 @@ public class BoidManager : MonoBehaviour
                 CalculateStartVel(),
                 boidVariables);
         }
+    }
+
+    private Vector3 CalculateStartPosition()
+    {
+        float startOffset = 10.0f;
+        return new Vector3(Random.Range(-startOffset, startOffset), Random.Range(-startOffset, startOffset), Random.Range(-startOffset, startOffset));
     }
 
     private void BuildPartitionStructure()
