@@ -10,5 +10,5 @@ Project formed a submission for a University module. **IF YOU ARE A MARKER** the
 
 If you are looking to use the project, I recommend using *initial-implementation* or *dev* as these are the most stable depending on your intended use. *initial-implementation* will not scale to large flocks well, but will avoid obstacles in the scene, while the current version on *dev* is better optimised for large flocks (1000 boids at ~120fps) but they will ignore and pass through any objects in scene.
 
-**Known Bugs**
+**Known Bugs**  
 There is nothing stopping boids flying out of the spatial partition. This causes the program to throw a fatal error and all boids just freeze
