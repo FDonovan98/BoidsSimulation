@@ -1,16 +1,11 @@
-### Blank Unity Project ### 
+Boids simulation implemented in Unity.
 
-This repository has been pre-configured with a .gitignore and .gitattributes file specific to Unity projects using git-lfs. 
+As stated, code is licensed under GNU license, but I would always love to see anything you use the code in!
 
-This project was created for Unity 2019.4.17
+Project formed a submission for a University module. **IF YOU ARE A MARKER** the below branches exist to provide a snapshot of the project at different stages to help demonstrate the projects evolution.
 
-The project has been created with a barebones folder structure and sample assets.  The settings have been optimized for best 3D quality without adding any additional packages to the project.
-For 2D projects, go to Edit -> Project Settings -> Editor and set the "Default Behaviour Mode" to 2D.  Do this at the start so that imported assets are optimized automatically.
+*initial-implementation*
+*partition-multithread*
+*spatial-partition*
 
-Please fork this repository, then rename and clone it to begin working on your project. 
-
-Note:  Do not leave empty folders in your Unity project.  Empty folders do not get added to version control, but the meta files they create do.  This can lead to issues with keeping your project up to date.
-
-For full details on this project's settings, please read the Changelog.md
- 
-Do you have any suggestions for improvements? Please submit a pull request!
+If you are looking to use the project, I recommend using *initial-implementation* or *dev* as these are the most stable depending on your intended use. *initial-implementation* will not scale to large flocks well, but will avoid obstacles in the scene, while the current version on *dev* is better optimised for large flocks (1000 boids at ~120fps) they will ignore and pass through any objects in scene.
