@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 
+[System.Serializable]
 public class BoidVariables
 {
     public float maxSpeed;
@@ -9,6 +10,7 @@ public class BoidVariables
     public float separationDistance;
     public float targetWeight;
     public float separationWeight;
+    public float avoidTerrainWeight;
     public float cohesionWeight;
     public float alignmentWeight;
 
@@ -149,13 +151,17 @@ public class Boid
         return separationVector * boidVariables.separationWeight;
     }
 
-    private Vector3 AvoidPoint(Vector3 posToAvoid)
+    private Vector3 AvoidPoint(PointToAvoid posToAvoid)
     {
-        float dist = Vector3.Distance(posToAvoid, lastPos);
+        float dist = Vector3.Distance(posToAvoid.pointPos, lastPos);
 
         if (dist < boidVariables.separationDistance && dist != 0)
         {
-            return (lastPos - posToAvoid).normalized / Mathf.Pow(dist, 2);
+            Vector3 avoidVector = (lastPos - posToAvoid.pointPos).normalized / Mathf.Pow(dist, 2);
+
+            if (!posToAvoid.isPointTerrain) return avoidVector;
+
+            return avoidVector * boidVariables.avoidTerrainWeight;
         }
 
         return Vector3.zero;

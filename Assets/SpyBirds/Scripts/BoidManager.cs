@@ -13,30 +13,9 @@ public class BoidManager : MonoBehaviour
     int numOfPartitions = 70;
     Vector3 position;
 
-    [Header("Boid Variables")]
-    // Movement variables.
-    [SerializeField]
-    private float maxSpeed = 10.0f;
-    [SerializeField]
-    private float turnRate = 1.0f;
-    [SerializeField]
-    private float acceleration = 1.0f;
 
-    // Steering variables.
     [SerializeField]
-    private Target target = null;
-    [SerializeField]
-    private float separationDistance = 4.0f;
-
-    // Steering weights.
-    [SerializeField]
-    private float targetWeight = 1.0f;
-    [SerializeField]
-    private float separationWeight = 1.0f;
-    [SerializeField]
-    private float cohesionWeight = 1.0f;
-    [SerializeField]
-    private float alignmentWeight = 1.0f;
+    private BoidVariables boidVariables;
 
     // Internal use.
     private Boid[] boids;
@@ -60,15 +39,6 @@ public class BoidManager : MonoBehaviour
         for (int i = 0; i < boids.Length; i++)
         {
             Vector3 startPos = CalculateStartPosition();
-            BoidVariables boidVariables = new BoidVariables(maxSpeed,
-                turnRate,
-                acceleration,
-                target,
-                separationDistance,
-                targetWeight,
-                separationWeight,
-                cohesionWeight,
-                alignmentWeight);
 
             // boidObjects[i + 1] as GetComponentsInChildren returns manager transform which we don't want.
             boids[i] = new Boid(i, boidObjects[i + 1],
@@ -93,7 +63,7 @@ public class BoidManager : MonoBehaviour
     private Vector3 CalculateStartVel()
     {
         Vector3 startVel = new Vector3(Random.value, Random.value, Random.value);
-        return startVel = startVel * Random.Range(-maxSpeed, maxSpeed);
+        return startVel = startVel * Random.Range(-boidVariables.maxSpeed, boidVariables.maxSpeed);
     }
 
     private Vector3Int CalculatePartition(Vector3 boidPos)

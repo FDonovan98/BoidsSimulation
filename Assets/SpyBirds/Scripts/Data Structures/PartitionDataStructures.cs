@@ -84,36 +84,36 @@ internal class PartitionCollection
                     float iLength = i * partitionLength + partitionLength / 2;
 
                     Vector3 pos = refPos + new Vector3(itemLength, jLength, iLength);
-                    AddPointToAvoidToPartition(new Vector3Int(item, j, i), pos);
+                    AddPointToAvoidToPartition(new Vector3Int(item, j, i), pos, true);
 
                     pos = refPos + new Vector3(itemLength, iLength, jLength);
-                    AddPointToAvoidToPartition(new Vector3Int(item, i, j), pos);
+                    AddPointToAvoidToPartition(new Vector3Int(item, i, j), pos, true);
 
                     pos = refPos + new Vector3(iLength, jLength, itemLength);
-                    AddPointToAvoidToPartition(new Vector3Int(i, j, item), pos);
+                    AddPointToAvoidToPartition(new Vector3Int(i, j, item), pos, true);
 
                     pos = refPos + new Vector3(iLength, itemLength, jLength);
-                    AddPointToAvoidToPartition(new Vector3Int(i, item, j), pos);
+                    AddPointToAvoidToPartition(new Vector3Int(i, item, j), pos, true);
 
                     pos = refPos + new Vector3(jLength, iLength, itemLength);
-                    AddPointToAvoidToPartition(new Vector3Int(j, i, item), pos);
+                    AddPointToAvoidToPartition(new Vector3Int(j, i, item), pos, true);
 
                     pos = refPos + new Vector3(jLength, itemLength, iLength);
-                    AddPointToAvoidToPartition(new Vector3Int(j, item, i), pos);
+                    AddPointToAvoidToPartition(new Vector3Int(j, item, i), pos, true);
                 }
             }
         }
     }
 
     // Ensures partition exists before trying to write to it.
-    private void AddPointToAvoidToPartition(Vector3Int partitionID, Vector3 pos)
+    private void AddPointToAvoidToPartition(Vector3Int partitionID, Vector3 pos, bool isPointTerrain)
     {
         if (partition[partitionID.x, partitionID.y, partitionID.z] == null)
         {
             partition[partitionID.x, partitionID.y, partitionID.z] = new Partition(partitionID, numOfPartitions);
         }
 
-        partition[partitionID.x, partitionID.y, partitionID.z].AddPointToAvoid(pos);
+        partition[partitionID.x, partitionID.y, partitionID.z].AddPointToAvoid(new PointToAvoid(pos, isPointTerrain));
     }
 
     // TODO:
@@ -158,7 +158,7 @@ public class Partition
     private Vector3Int m_partitionID;
     private Vector3Int[] neighbouringIDs;
     // Location, isLocationRelative.
-    private List<Vector3> pointsToAvoid = new List<Vector3>();
+    private List<PointToAvoid> pointsToAvoid = new List<PointToAvoid>();
 
     public Partition(int boidID, Vector3Int partitionID, int numPartitions)
     {
@@ -213,7 +213,7 @@ public class Partition
     {
         Vector3 avgPos = partitionValues.m_avgPos * boidIDs.Count;
         Vector3 avgVel = partitionValues.m_avgVel * boidIDs.Count;
-        List<Vector3> avoidPoints = new List<Vector3>();
+        List<PointToAvoid> avoidPoints = new List<PointToAvoid>();
 
         if (partitionValues.m_pointsToAvoid.Length > 0) avoidPoints.AddRange(partitionValues.m_pointsToAvoid);
 
@@ -243,12 +243,12 @@ public class Partition
     {
         Vector3 avgPos = new Vector3();
         Vector3 avgVel = new Vector3();
-        List<Vector3> avoidPoints = new List<Vector3>();
+        List<PointToAvoid> avoidPoints = new List<PointToAvoid>();
 
         // Uses stored boidID's for index positions in boids array. 
         for (int i = 0; i < boidIDs.Count; i++)
         {
-            avoidPoints.Add(boids[boidIDs[i]].lastPos);
+            avoidPoints.Add(new PointToAvoid(boids[boidIDs[i]].lastPos, false));
             avgPos += boids[boidIDs[i]].lastPos;
             avgVel += boids[boidIDs[i]].vel;
         }
@@ -264,11 +264,11 @@ public class Partition
         else boidIDs.Add(boidID);
     }
 
-    internal void AddPointToAvoid(Vector3 pos)
+    internal void AddPointToAvoid(PointToAvoid pointToAvoid)
     {
-        if (!pointsToAvoid.Contains(pos))
+        if (!pointsToAvoid.Contains(pointToAvoid))
         {
-            pointsToAvoid.Add(pos);
+            pointsToAvoid.Add(pointToAvoid);
         }
     }
 }
