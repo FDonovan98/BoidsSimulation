@@ -102,7 +102,7 @@ public class BoidManager : MonoBehaviour
         Vector3 partitionFloat = (position - boidPos) / partitionLength;
         // Recentre so controller position is at the centre of the partitions.
         partitionFloat += new Vector3(numOfPartitions / 2, numOfPartitions / 2, numOfPartitions / 2);
-        Vector3Int partition = Vector3Int.FloorToInt(partitionFloat);
+        Vector3Int partition = Vector3Int.CeilToInt(partitionFloat);
 
         // Check partition value is within allowed range.
         if (partition.x >= numOfPartitions || partition.y > numOfPartitions || partition.z > numOfPartitions)
