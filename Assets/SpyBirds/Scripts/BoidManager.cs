@@ -105,7 +105,7 @@ public class BoidManager : MonoBehaviour
         Vector3Int partition = Vector3Int.CeilToInt(partitionFloat);
 
         // Check partition value is within allowed range.
-        if (partition.x >= numOfPartitions || partition.y > numOfPartitions || partition.z > numOfPartitions)
+        if (partition.x >= numOfPartitions || partition.y >= numOfPartitions || partition.z >= numOfPartitions)
         {
             Debug.LogError("Boid is outside of partition range");
             return new Vector3Int(int.MaxValue, int.MaxValue, int.MaxValue);

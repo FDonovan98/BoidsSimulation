@@ -24,6 +24,8 @@ internal class PartitionCollection
     // TODO: Boid leaving partition collection.
     public void MoveBoid(int boidID, Vector3Int newPartition)
     {
+        // vector3 with all max values means partition is outside of allowed range.
+        if (newPartition == new Vector3Int(int.MaxValue, int.MaxValue, int.MaxValue)) return;
         Vector3Int oldPartition = boids[boidID].partitionID;
 
         if (partition[oldPartition.x, oldPartition.y, oldPartition.z] != null)
