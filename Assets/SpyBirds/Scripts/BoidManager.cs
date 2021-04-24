@@ -183,7 +183,7 @@ public class BoidManager : MonoBehaviour
             Gizmos.color = Color.red;
             Gizmos.DrawLine(item.lastPos, item.lastPos + (3 * item.targetVel));
 
-            Gizmos.DrawSphere(item.flockValues.m_avgPos, 1.0f);
+            Gizmos.DrawSphere(item.partitionValues.m_avgPos, 1.0f);
         }
     }
 }

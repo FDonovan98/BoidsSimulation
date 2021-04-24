@@ -59,8 +59,8 @@ public class Boid
     public Vector3 lastPos;
     public Vector3 vel;
     public Vector3 targetVel;
-    public FlockValues flockValues;
-    private FlockValues adjustedFlockValues;
+    public PartitionValues partitionValues;
+    private PartitionValues adjustedFlockValues;
 
     public Boid(
         int ID,
@@ -93,9 +93,9 @@ public class Boid
         transform.up = vel;
     }
 
-    internal void UpdateFlockValues(FlockValues flockValues, FlockValues adjustedFlockValues)
+    internal void UpdateFlockValues(PartitionValues partitionValues, PartitionValues adjustedFlockValues)
     {
-        this.flockValues = flockValues;
+        this.partitionValues = partitionValues;
         this.adjustedFlockValues = adjustedFlockValues;
 
         CalculateTargetVelocity();
@@ -108,11 +108,11 @@ public class Boid
         // Boid steering behaviours.
         targetVel += Target();
 
-        targetVel += Cohesion(flockValues.m_avgPos);
+        targetVel += Cohesion(partitionValues.m_avgPos);
 
         targetVel += Separation();
 
-        targetVel += Alignment(flockValues.m_avgVel);
+        targetVel += Alignment(partitionValues.m_avgVel);
 
         targetVel = Vector3.ClampMagnitude(targetVel, boidVariables.maxSpeed);
     }
@@ -139,11 +139,11 @@ public class Boid
     {
         Vector3 separationVector = new Vector3();
 
-        if (flockValues.m_posArray == null) return Vector3.zero;
+        if (partitionValues.m_posArray == null) return Vector3.zero;
 
-        for (int i = 0; i < flockValues.m_posArray.Length; i++)
+        for (int i = 0; i < partitionValues.m_posArray.Length; i++)
         {
-            separationVector += AvoidPoint(flockValues.m_posArray[i]);
+            separationVector += AvoidPoint(partitionValues.m_posArray[i]);
         }
 
         return separationVector * boidVariables.separationWeight;
