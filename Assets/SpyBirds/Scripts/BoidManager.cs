@@ -44,6 +44,7 @@ public class BoidManager : MonoBehaviour
 
     private void Start()
     {
+        // Should allow manager to be moved during play without a problem.
         position = transform.position;
         BuildAllBoids();
         BuildPartitionStructure();
@@ -162,7 +163,7 @@ public class BoidManager : MonoBehaviour
     {
         Gizmos.color = new Color(1.0f, 0.0f, 0.0f, 0.1f);
 
-        Vector3 startPos = transform.position - new Vector3(numOfPartitions / 2 * partitionLength, numOfPartitions / 2 * partitionLength, numOfPartitions / 2 * partitionLength);
+        Vector3 startPos = position - new Vector3(numOfPartitions / 2 * partitionLength, numOfPartitions / 2 * partitionLength, numOfPartitions / 2 * partitionLength);
         for (int x = 0; x < numOfPartitions; x++)
         {
             for (int y = 0; y < numOfPartitions; y++)
