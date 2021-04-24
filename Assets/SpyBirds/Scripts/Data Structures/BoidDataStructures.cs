@@ -139,11 +139,11 @@ public class Boid
     {
         Vector3 separationVector = new Vector3();
 
-        if (partitionValues.m_posArray == null) return Vector3.zero;
+        if (partitionValues.m_pointsToAvoid == null) return Vector3.zero;
 
-        for (int i = 0; i < partitionValues.m_posArray.Length; i++)
+        for (int i = 0; i < partitionValues.m_pointsToAvoid.Length; i++)
         {
-            separationVector += AvoidPoint(partitionValues.m_posArray[i]);
+            separationVector += AvoidPoint(partitionValues.m_pointsToAvoid[i]);
         }
 
         return separationVector * boidVariables.separationWeight;

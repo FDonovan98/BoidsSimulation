@@ -87,16 +87,7 @@ public class BoidManager : MonoBehaviour
 
     private void BuildPartitionStructure()
     {
-        partitionCollection = new PartitionCollection(numOfPartitions, boids);
-
-        // AddBoundingPoints();
-    }
-
-    // Calculate points that need to be avoided to keep boids within partition collection.
-    // Adds these points to the partitions.
-    private void AddBoundingPoints()
-    {
-        throw new System.NotImplementedException();
+        partitionCollection = new PartitionCollection(position, numOfPartitions, partitionLength, boids);
     }
 
     private Vector3 CalculateStartVel()
@@ -114,21 +105,31 @@ public class BoidManager : MonoBehaviour
         Vector3Int partition = Vector3Int.FloorToInt(partitionFloat);
 
         // Check partition value is within allowed range.
-        if (partition.x > numOfPartitions || partition.y > numOfPartitions || partition.z > numOfPartitions)
+        if (partition.x >= numOfPartitions || partition.y > numOfPartitions || partition.z > numOfPartitions)
         {
-            if (partition.x < 0 || partition.y < 0 || partition.z < 0)
-            {
-                Debug.LogError("Boid is outside of partition range");
-                return new Vector3Int(int.MaxValue, int.MaxValue, int.MaxValue);
-            }
+            Debug.LogError("Boid is outside of partition range");
+            return new Vector3Int(int.MaxValue, int.MaxValue, int.MaxValue);
         }
+        else if (partition.x < 0 || partition.y < 0 || partition.z < 0)
+        {
+            Debug.LogError("Boid is outside of partition range");
+            return new Vector3Int(int.MaxValue, int.MaxValue, int.MaxValue);
+        }
+
 
         return partition;
     }
 
     private void Update()
     {
-        position = transform.position;
+        // Updates position only if it ahs actually changed.
+        // Value of 1.0f is arbitary.
+        if (Vector3.Distance(position, transform.position) > 1.0f)
+        {
+            position = transform.position;
+            partitionCollection.UpdateAllPointsToAvoid(position, partitionLength);
+        }
+
         UpdateBoid();
         partitionCollection.UpdatePartitions();
     }
@@ -156,6 +157,7 @@ public class BoidManager : MonoBehaviour
         Vector3Int partition = CalculatePartition(boid.lastPos);
         if (partition == boid.partitionID) return;
 
+        Debug.Log(boid.lastPos);
         partitionCollection.MoveBoid(boid.ID, partition);
     }
 
@@ -176,14 +178,13 @@ public class BoidManager : MonoBehaviour
             }
         }
 
-        foreach (Boid item in boids)
-        {
-            Gizmos.color = Color.blue;
-            Gizmos.DrawLine(item.lastPos, item.lastPos + (5 * item.vel));
-            Gizmos.color = Color.red;
-            Gizmos.DrawLine(item.lastPos, item.lastPos + (3 * item.targetVel));
-
-            Gizmos.DrawSphere(item.partitionValues.m_avgPos, 1.0f);
-        }
+        // foreach (Boid item in boids)
+        // {
+        //     Gizmos.color = Color.blue;
+        //     Gizmos.DrawLine(item.lastPos, item.lastPos + (5 * item.vel));
+        //     Gizmos.color = Color.red;
+        //     Gizmos.DrawLine(item.lastPos, item.lastPos + (3 * item.targetVel));
+        //     // Gizmos.DrawSphere(item.partitionValues.m_avgPos, 1.0f);
+        // }
     }
 }

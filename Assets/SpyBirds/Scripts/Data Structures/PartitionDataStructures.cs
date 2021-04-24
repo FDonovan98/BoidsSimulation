@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 internal class PartitionCollection
@@ -10,12 +11,14 @@ internal class PartitionCollection
 
     private List<Vector3Int> partitionsToUpdate = new List<Vector3Int>();
 
-    public PartitionCollection(int numOfPartitions, Boid[] boids)
+    public PartitionCollection(Vector3 pos, int numOfPartitions, float partitionLength, Boid[] boids)
     {
         this.numOfPartitions = numOfPartitions;
         this.boids = boids;
 
         partition = new Partition[numOfPartitions, numOfPartitions, numOfPartitions];
+
+        // UpdateAllPointsToAvoid(pos, partitionLength);
     }
 
     // TODO: Boid leaving partition collection.
@@ -29,6 +32,7 @@ internal class PartitionCollection
 
             UpdatePartitionQueue(oldPartition);
         }
+
 
         if (partition[newPartition.x, newPartition.y, newPartition.z] == null)
         {
@@ -46,7 +50,77 @@ internal class PartitionCollection
         if (!partitionsToUpdate.Contains(partition)) partitionsToUpdate.Add(partition);
     }
 
-    // TODO: Add function to recalculate all relative locations stored in pointToAvoidDict variable.
+    // TODO: Add function to recalculate all locations stored in pointToAvoidDict if the position of the partitioncollection has changed.
+    public void UpdateAllPointsToAvoid(Vector3 pos, float partitionLength)
+    {
+        UpdateBoundingBox(pos, partitionLength);
+        UpdateTerrainColliders(pos);
+    }
+
+    // TODO:
+    // Calculate any external faces for each partition.
+    // Calculate coords in world space of the centre of the face.
+    // Add this to the list of points to avoid in the partition data.
+    private void UpdateBoundingBox(Vector3 position, float partitionLength)
+    {
+        // Calculate the centre points of the external panels.
+        Vector3 refPos = new Vector3(
+            position.x - (numOfPartitions / 2) * partitionLength,
+            position.y - (numOfPartitions / 2) * partitionLength,
+            position.z - (numOfPartitions / 2) * partitionLength);
+
+        // refPos += new Vector3(partitionLength / 2, partitionLength / 2, partitionLength / 2);
+
+        foreach (int item in new int[] { 0, numOfPartitions - 1 })
+        {
+            for (int i = 0; i < numOfPartitions; i++)
+            {
+                for (int j = 0; j < numOfPartitions; j++)
+                {
+                    float itemLength = item * partitionLength + ((partitionLength / 2 * item / (numOfPartitions - 1)) * 2 - 1);
+                    float jLength = j * partitionLength + partitionLength / 2;
+                    float iLength = i * partitionLength + partitionLength / 2;
+
+                    Vector3 pos = refPos + new Vector3(itemLength, jLength, iLength);
+                    AddPointToAvoidToPartition(new Vector3Int(item, j, i), pos);
+
+                    pos = refPos + new Vector3(itemLength, iLength, jLength);
+                    AddPointToAvoidToPartition(new Vector3Int(item, i, j), pos);
+
+                    pos = refPos + new Vector3(iLength, jLength, itemLength);
+                    AddPointToAvoidToPartition(new Vector3Int(i, j, item), pos);
+
+                    pos = refPos + new Vector3(iLength, itemLength, jLength);
+                    AddPointToAvoidToPartition(new Vector3Int(i, item, j), pos);
+
+                    pos = refPos + new Vector3(jLength, iLength, itemLength);
+                    AddPointToAvoidToPartition(new Vector3Int(j, i, item), pos);
+
+                    pos = refPos + new Vector3(jLength, itemLength, iLength);
+                    AddPointToAvoidToPartition(new Vector3Int(j, item, i), pos);
+                }
+            }
+        }
+    }
+
+    // Ensures partition exists before trying to write to it.
+    private void AddPointToAvoidToPartition(Vector3Int partitionID, Vector3 pos)
+    {
+        if (partition[partitionID.x, partitionID.y, partitionID.z] == null)
+        {
+            partition[partitionID.x, partitionID.y, partitionID.z] = new Partition(partitionID, numOfPartitions);
+        }
+
+        partition[partitionID.x, partitionID.y, partitionID.z].AddPointToAvoid(pos);
+    }
+
+    // TODO:
+    // Marching cube through each partition and add collider points for any colliders found in each cube.
+    private void UpdateTerrainColliders(Vector3 pos)
+    {
+        throw new NotImplementedException();
+    }
+
     public void UpdatePartitions()
     {
         if (partitionsToUpdate.Count == 0) return;
@@ -82,13 +156,20 @@ public class Partition
     private Vector3Int m_partitionID;
     private Vector3Int[] neighbouringIDs;
     // Location, isLocationRelative.
-    private Dictionary<Vector3, bool> pointToAvoidDict = new Dictionary<Vector3, bool>();
+    private List<Vector3> pointsToAvoid = new List<Vector3>();
 
     public Partition(int boidID, Vector3Int partitionID, int numPartitions)
     {
         boidIDs = new List<int>();
         boidIDs.Add(boidID);
 
+        m_partitionID = partitionID;
+
+        CalculateNeighbours(partitionID, numPartitions);
+    }
+
+    public Partition(Vector3Int partitionID, int numPartitions)
+    {
         m_partitionID = partitionID;
 
         CalculateNeighbours(partitionID, numPartitions);
@@ -130,7 +211,10 @@ public class Partition
     {
         Vector3 avgPos = partitionValues.m_avgPos * boidIDs.Count;
         Vector3 avgVel = partitionValues.m_avgVel * boidIDs.Count;
-        Vector3[] posArray = partitionValues.m_posArray;
+        List<Vector3> avoidPoints = new List<Vector3>();
+
+        if (partitionValues.m_pointsToAvoid.Length > 0) avoidPoints.AddRange(partitionValues.m_pointsToAvoid);
+
         int totalCount = boidIDs.Count;
 
         foreach (Vector3Int item in neighbouringIDs)
@@ -144,34 +228,45 @@ public class Partition
                 avgVel += itemPartitionData.partitionValues.m_avgVel * itemPartitionData.boidIDs.Count;
 
                 totalCount += itemPartitionData.boidIDs.Count;
+
+                avoidPoints.AddRange(itemPartitionData.pointsToAvoid);
             }
         }
 
-        adjustedFlockValues = new PartitionValues(avgPos / totalCount, avgVel / totalCount, posArray);
+        adjustedFlockValues = new PartitionValues(avgPos / totalCount, avgVel / totalCount, avoidPoints.ToArray());
     }
 
     // Update values for this partition.
     public void UpdateFlockValues(Boid[] boids)
     {
-        if (boidIDs.Count < 1) return;
-
         Vector3 avgPos = new Vector3();
         Vector3 avgVel = new Vector3();
-        List<Vector3> posArray = new List<Vector3>();
+        List<Vector3> avoidPoints = new List<Vector3>();
 
+        // Uses stored boidID's for index positions in boids array. 
         for (int i = 0; i < boidIDs.Count; i++)
         {
-            posArray.Add(boids[boidIDs[i]].lastPos);
+            avoidPoints.Add(boids[boidIDs[i]].lastPos);
             avgPos += boids[boidIDs[i]].lastPos;
             avgVel += boids[boidIDs[i]].vel;
         }
 
-        partitionValues = new PartitionValues(avgPos / boidIDs.Count, avgVel / boidIDs.Count, posArray.ToArray());
+        avoidPoints.AddRange(pointsToAvoid);
+
+        partitionValues = new PartitionValues(avgPos / boidIDs.Count, avgVel / boidIDs.Count, avoidPoints.ToArray());
     }
 
     public void UpdateIDList(int boidID, bool idIsBeingRemoved)
     {
         if (idIsBeingRemoved) boidIDs.Remove(boidID);
         else boidIDs.Add(boidID);
+    }
+
+    internal void AddPointToAvoid(Vector3 pos)
+    {
+        if (!pointsToAvoid.Contains(pos))
+        {
+            pointsToAvoid.Add(pos);
+        }
     }
 }
