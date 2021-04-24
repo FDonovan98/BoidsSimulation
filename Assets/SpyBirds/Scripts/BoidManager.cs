@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿// Manages the boids and partitions existing in scene, handles calculations requiring relative position info.
+
+using System.Threading.Tasks;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -50,8 +52,9 @@ public class BoidManager : MonoBehaviour
     private void BuildAllBoids()
     {
         // TODO: (Option to) Spawn in boids instead.
-        Transform[] boidObjects = this.GetComponentsInChildren<Transform>();
-        boids = new Boid[boidObjects.Length];
+        Transform[] boidObjects = GetComponentsInChildren<Transform>();
+        // boidObjects.Length - 1 as GetComponentsInChildren returns manager transform which we don't want.
+        boids = new Boid[boidObjects.Length - 1];
 
         for (int i = 0; i < boids.Length; i++)
         {
@@ -66,7 +69,8 @@ public class BoidManager : MonoBehaviour
                 cohesionWeight,
                 alignmentWeight);
 
-            boids[i] = new Boid(i, boidObjects[i],
+            // boidObjects[i + 1] as GetComponentsInChildren returns manager transform which we don't want.
+            boids[i] = new Boid(i, boidObjects[i + 1],
                 startPos,
                 CalculatePartition(startPos),
                 CalculateStartVel(),
@@ -83,6 +87,15 @@ public class BoidManager : MonoBehaviour
     private void BuildPartitionStructure()
     {
         partitionCollection = new PartitionCollection(numOfPartitions, boids);
+
+        // AddBoundingPoints();
+    }
+
+    // Calculate points that need to be avoided to keep boids within partition collection.
+    // Adds these points to the partitions.
+    private void AddBoundingPoints()
+    {
+        throw new System.NotImplementedException();
     }
 
     private Vector3 CalculateStartVel()
