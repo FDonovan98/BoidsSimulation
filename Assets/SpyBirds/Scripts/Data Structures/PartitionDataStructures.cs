@@ -46,6 +46,7 @@ internal class PartitionCollection
         if (!partitionsToUpdate.Contains(partition)) partitionsToUpdate.Add(partition);
     }
 
+    // TODO: Add function to recalculate all relative locations stored in pointToAvoidDict variable.
     public void UpdatePartitions()
     {
         if (partitionsToUpdate.Count == 0) return;
@@ -78,8 +79,10 @@ public class PartitionData
     public List<int> boidIDs = new List<int>();
     public FlockValues flockValues;
     public FlockValues adjustedFlockValues;
-    static Vector3Int m_partitionID;
-    Vector3Int[] neighbouringIDs;
+    private Vector3Int m_partitionID;
+    private Vector3Int[] neighbouringIDs;
+    // Location, isLocationRelative.
+    private Dictionary<Vector3, bool> pointToAvoidDict = new Dictionary<Vector3, bool>();
 
     public PartitionData(int boidID, Vector3Int partitionID, int numPartitions)
     {

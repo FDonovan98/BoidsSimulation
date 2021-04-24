@@ -45,7 +45,7 @@ public class BoidVariables
     public float AlignmentWeight { get; }
 }
 
-
+// TODO: Add steering behavior to avoid all points in partitions pointToAvoidDict.
 public class Boid
 {
     public BoidVariables boidVariables;
