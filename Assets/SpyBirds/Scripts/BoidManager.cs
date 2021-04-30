@@ -65,7 +65,7 @@ public class BoidManager : MonoBehaviour
 
         for (int i = 0; i < numBoidsToSpawn; i++)
         {
-            boidObjects[i] = Instantiate<GameObject>(boidPrefab).transform;
+            boidObjects[i] = Instantiate<GameObject>(boidPrefab, transform).transform;
         }
         boids = new Boid[numBoidsToSpawn - 1];
 
@@ -128,11 +128,14 @@ public class BoidManager : MonoBehaviour
         // Check partition value is within allowed range.
         if (partition.x > numOfPartitions || partition.y > numOfPartitions || partition.z > numOfPartitions)
         {
-            if (partition.x < 0 || partition.y < 0 || partition.z < 0)
-            {
-                Debug.LogError("Boid is outside of partition range");
-                return new Vector3Int(int.MaxValue, int.MaxValue, int.MaxValue);
-            }
+            Debug.LogError("Boid is outside of partition range");
+            return new Vector3Int(int.MaxValue, int.MaxValue, int.MaxValue);
+        }
+
+        if (partition.x < 0 || partition.y < 0 || partition.z < 0)
+        {
+            Debug.LogError("Boid is outside of partition range");
+            return new Vector3Int(int.MaxValue, int.MaxValue, int.MaxValue);
         }
 
         return partition;

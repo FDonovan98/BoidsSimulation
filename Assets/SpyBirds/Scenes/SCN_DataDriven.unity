@@ -328,8 +328,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   partitionLength: 20
-  numOfPartitions: 20
-  numBoidsToSpawn: 1000
+  numOfPartitions: 70
+  numBoidsToSpawn: 2000
   boidPrefab: {fileID: 7212746578717795957, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
     type: 3}
   maxSpeed: 20

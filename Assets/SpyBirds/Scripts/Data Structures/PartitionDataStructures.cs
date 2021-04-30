@@ -30,6 +30,17 @@ internal class PartitionCollection
             UpdatePartitionQueue(oldPartition);
         }
 
+        // If new partition is out of range set it to 0, 0, 0 to try and pull it back into the centre.
+        if (newPartition.x > numOfPartitions || newPartition.y > numOfPartitions || newPartition.z > numOfPartitions)
+        {
+            newPartition = new Vector3Int();
+        }
+
+        if (newPartition.x < 0 || newPartition.y < 0 || newPartition.z < 0)
+        {
+            newPartition = new Vector3Int();
+        }
+
         if (partitionData[newPartition.x, newPartition.y, newPartition.z] == null)
         {
             partitionData[newPartition.x, newPartition.y, newPartition.z] = new PartitionData(boidID, newPartition, numOfPartitions);
