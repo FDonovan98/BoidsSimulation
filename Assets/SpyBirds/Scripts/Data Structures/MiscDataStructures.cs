@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-public struct PartitionValues
+public class PartitionValues
 {
     public Vector3 m_avgPos;
     public Vector3 m_avgVel;

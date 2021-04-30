@@ -127,7 +127,6 @@ public class BoidManager : MonoBehaviour
         Vector3Int partition = CalculatePartition(boid.lastPos);
         if (partition == boid.partitionID) return;
 
-        Debug.Log(boid.lastPos);
         partitionCollection.MoveBoid(boid.ID, partition);
     }
 
@@ -148,13 +147,25 @@ public class BoidManager : MonoBehaviour
             }
         }
 
-        // foreach (Boid item in boids)
-        // {
-        //     Gizmos.color = Color.blue;
-        //     Gizmos.DrawLine(item.lastPos, item.lastPos + (5 * item.vel));
-        //     Gizmos.color = Color.red;
-        //     Gizmos.DrawLine(item.lastPos, item.lastPos + (3 * item.targetVel));
-        //     // Gizmos.DrawSphere(item.partitionValues.m_avgPos, 1.0f);
-        // }
+        Gizmos.color = Color.blue;
+        foreach (Boid item in boids)
+        {
+            Gizmos.DrawRay(item.lastPos, item.targetVel * 3);
+        }
+
+        foreach (Partition item in partitionCollection.partition)
+        {
+            if (item != null && item.adjustedFlockValues != null)
+            {
+                if (item.adjustedFlockValues.m_pointsToAvoid.Length > 0)
+                {
+                    Gizmos.color = Color.yellow;
+                    foreach (PointToAvoid element in item.adjustedFlockValues.m_pointsToAvoid)
+                    {
+                        Gizmos.DrawSphere(element.pointPos, 1.0f);
+                    }
+                }
+            }
+        }
     }
 }
