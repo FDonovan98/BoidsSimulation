@@ -11,7 +11,6 @@ GameObject:
   - component: {fileID: 2247314265402581234}
   - component: {fileID: 4994773958629099106}
   - component: {fileID: 3339809888957967599}
-  - component: {fileID: 4855707085686119793}
   m_Layer: 0
   m_Name: PRF_Boid
   m_TagString: Boid
@@ -80,27 +79,3 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
---- !u!114 &4855707085686119793
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7212746578717795957}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c425e448b5393d448b51635cd75a37de, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  debugMode: 0
-  maxSpeed: 6
-  turnRate: 60
-  acceleration: 2
-  seperationDistance: 6
-  targetWeight: 0.58
-  cohesionWeight: 0.35
-  seperationWeight: 0.539
-  alignmentWeight: 0.3
-  avoidTerrainWeight: 1
-  lastPos: {x: 0, y: 0, z: 0}
-  velocity: {x: 0, y: 0, z: 0}

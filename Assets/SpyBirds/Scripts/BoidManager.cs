@@ -11,6 +11,10 @@ public class BoidManager : MonoBehaviour
     float partitionLength = 20.0f;
     [SerializeField]
     int numOfPartitions = 70;
+    [SerializeField]
+    int numBoidsToSpawn = 100;
+    [SerializeField]
+    GameObject boidPrefab = null;
     Vector3 position;
 
     [Header("Boid Variables")]
@@ -52,10 +56,18 @@ public class BoidManager : MonoBehaviour
 
     private void BuildAllBoids()
     {
-        // TODO: (Option to) Spawn in boids instead.
-        Transform[] boidObjects = GetComponentsInChildren<Transform>();
-        // boidObjects.Length - 1 as GetComponentsInChildren returns manager transform which we don't want.
-        boids = new Boid[boidObjects.Length - 1];
+        // // TODO: (Option to) Spawn in boids instead.
+        // Transform[] boidObjects = GetComponentsInChildren<Transform>();
+        // // boidObjects.Length - 1 as GetComponentsInChildren returns manager transform which we don't want.
+        // boids = new Boid[boidObjects.Length - 1];
+
+        Transform[] boidObjects = new Transform[numBoidsToSpawn];
+
+        for (int i = 0; i < numBoidsToSpawn; i++)
+        {
+            boidObjects[i] = Instantiate<GameObject>(boidPrefab).transform;
+        }
+        boids = new Boid[numBoidsToSpawn - 1];
 
         for (int i = 0; i < boids.Length; i++)
         {
