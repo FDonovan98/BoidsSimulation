@@ -27,8 +27,6 @@ internal class PartitionCollection
     // TODO: Boid leaving partition collection.
     public void MoveBoid(int boidID, Vector3Int newPartition)
     {
-        // vector3 with all max values means partition is outside of allowed range.
-        if (newPartition == new Vector3Int(int.MaxValue, int.MaxValue, int.MaxValue)) return;
         Vector3Int oldPartition = boids[boidID].partitionID;
 
         if (partition[oldPartition.x, oldPartition.y, oldPartition.z] != null)
@@ -38,6 +36,9 @@ internal class PartitionCollection
             UpdatePartitionQueue(oldPartition);
         }
 
+        // vector3 with all max values means partition is outside of allowed range.
+        // Set newPartition to 0, 0, 0 to try and guide it back into the partition.
+        if (newPartition == new Vector3Int(int.MaxValue, int.MaxValue, int.MaxValue)) newPartition = new Vector3Int(0, 0, 0);
 
         if (partition[newPartition.x, newPartition.y, newPartition.z] == null)
         {
@@ -260,11 +261,15 @@ public class Partition
 
             if (itemPartitionData != null)
             {
-                avgPos += itemPartitionData.partitionValues.m_avgPos * itemPartitionData.boidIDs.Count;
+                if (itemPartitionData.boidIDs.Count > 0)
+                {
+                    avgPos += itemPartitionData.partitionValues.m_avgPos * itemPartitionData.boidIDs.Count;
 
-                avgVel += itemPartitionData.partitionValues.m_avgVel * itemPartitionData.boidIDs.Count;
+                    avgVel += itemPartitionData.partitionValues.m_avgVel * itemPartitionData.boidIDs.Count;
 
-                totalCount += itemPartitionData.boidIDs.Count;
+                    totalCount += itemPartitionData.boidIDs.Count;
+                }
+
 
                 avoidPoints.AddRange(itemPartitionData.pointsToAvoid);
             }
