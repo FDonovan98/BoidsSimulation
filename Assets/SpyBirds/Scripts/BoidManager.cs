@@ -56,21 +56,18 @@ public class BoidManager : MonoBehaviour
 
     private void BuildAllBoids()
     {
-        // // TODO: (Option to) Spawn in boids instead.
-        // Transform[] boidObjects = GetComponentsInChildren<Transform>();
-        // // boidObjects.Length - 1 as GetComponentsInChildren returns manager transform which we don't want.
-        // boids = new Boid[boidObjects.Length - 1];
-
         Transform[] boidObjects = new Transform[numBoidsToSpawn];
 
         for (int i = 0; i < numBoidsToSpawn; i++)
         {
             boidObjects[i] = Instantiate<GameObject>(boidPrefab, transform).transform;
         }
-        boids = new Boid[numBoidsToSpawn - 1];
+
+        boids = new Boid[numBoidsToSpawn];
 
         for (int i = 0; i < boids.Length; i++)
         {
+            Debug.Log("Place");
             Vector3 startPos = CalculateStartPosition();
             BoidVariables boidVariables = new BoidVariables(maxSpeed,
                 turnRate,
@@ -82,8 +79,7 @@ public class BoidManager : MonoBehaviour
                 cohesionWeight,
                 alignmentWeight);
 
-            // boidObjects[i + 1] as GetComponentsInChildren returns manager transform which we don't want.
-            boids[i] = new Boid(i, boidObjects[i + 1],
+            boids[i] = new Boid(i, boidObjects[i],
                 startPos,
                 CalculatePartition(startPos),
                 CalculateStartVel(),
@@ -191,14 +187,11 @@ public class BoidManager : MonoBehaviour
             }
         }
 
-        foreach (Boid item in boids)
-        {
-            Gizmos.color = Color.blue;
-            Gizmos.DrawLine(item.lastPos, item.lastPos + (5 * item.vel));
-            Gizmos.color = Color.red;
-            Gizmos.DrawLine(item.lastPos, item.lastPos + (3 * item.targetVel));
+        Gizmos.color = Color.blue;
+        Gizmos.DrawLine(boids[0].lastPos, boids[0].lastPos + (5 * boids[0].vel));
+        Gizmos.color = Color.red;
+        Gizmos.DrawLine(boids[0].lastPos, boids[0].lastPos + (3 * boids[0].targetVel));
 
-            Gizmos.DrawSphere(item.flockValues.m_avgPos, 1.0f);
-        }
+        Gizmos.DrawSphere(boids[0].flockValues.m_avgPos, 1.0f);
     }
 }
