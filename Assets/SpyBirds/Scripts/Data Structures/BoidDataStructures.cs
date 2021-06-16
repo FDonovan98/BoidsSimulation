@@ -63,7 +63,7 @@ public class Boid
     public Vector3 vel;
     public Vector3 targetVel;
     public PartitionValues partitionValues;
-    private PartitionValues adjustedFlockValues;
+    public PartitionValues adjustedFlockValues;
 
     public Boid(
         int ID,

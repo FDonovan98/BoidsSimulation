@@ -11,6 +11,12 @@ public class BoidManager : MonoBehaviour
     float partitionLength = 20.0f;
     [SerializeField]
     int numOfPartitions = 70;
+    [SerializeField]
+    int numBoidsToSpawn = 100;
+    [SerializeField]
+    float spawnRange = 10.0f;
+    [SerializeField]
+    GameObject boidPrefab = null;
     Vector3 position;
 
 
@@ -31,17 +37,21 @@ public class BoidManager : MonoBehaviour
 
     private void BuildAllBoids()
     {
-        // TODO: (Option to) Spawn in boids instead.
-        Transform[] boidObjects = GetComponentsInChildren<Transform>();
-        // boidObjects.Length - 1 as GetComponentsInChildren returns manager transform which we don't want.
-        boids = new Boid[boidObjects.Length - 1];
+        Transform[] boidObjects = new Transform[numBoidsToSpawn];
+
+        for (int i = 0; i < numBoidsToSpawn; i++)
+        {
+            boidObjects[i] = Instantiate<GameObject>(boidPrefab, transform).transform;
+        }
+
+        boids = new Boid[numBoidsToSpawn];
 
         for (int i = 0; i < boids.Length; i++)
         {
+            Debug.Log("Place");
             Vector3 startPos = CalculateStartPosition();
 
-            // boidObjects[i + 1] as GetComponentsInChildren returns manager transform which we don't want.
-            boids[i] = new Boid(i, boidObjects[i + 1],
+            boids[i] = new Boid(i, boidObjects[i],
                 startPos,
                 CalculatePartition(startPos),
                 CalculateStartVel(),
@@ -51,8 +61,7 @@ public class BoidManager : MonoBehaviour
 
     private Vector3 CalculateStartPosition()
     {
-        float startOffset = 10.0f;
-        return new Vector3(Random.Range(-startOffset, startOffset), Random.Range(-startOffset, startOffset), Random.Range(-startOffset, startOffset));
+        return new Vector3(Random.Range(-spawnRange, spawnRange), Random.Range(-spawnRange, spawnRange), Random.Range(-spawnRange, spawnRange));
     }
 
     private void BuildPartitionStructure()
@@ -72,20 +81,21 @@ public class BoidManager : MonoBehaviour
         Vector3 partitionFloat = (position - boidPos) / partitionLength;
         // Recentre so controller position is at the centre of the partitions.
         partitionFloat += new Vector3(numOfPartitions / 2, numOfPartitions / 2, numOfPartitions / 2);
-        Vector3Int partition = Vector3Int.CeilToInt(partitionFloat);
+
+        Vector3Int partition = Vector3Int.RoundToInt(partitionFloat);
 
         // Check partition value is within allowed range.
-        if (partition.x >= numOfPartitions || partition.y >= numOfPartitions || partition.z >= numOfPartitions)
-        {
-            Debug.LogError("Boid is outside of partition range");
-            return new Vector3Int(int.MaxValue, int.MaxValue, int.MaxValue);
-        }
-        else if (partition.x < 0 || partition.y < 0 || partition.z < 0)
+        if (partition.x > numOfPartitions - 1 || partition.y > numOfPartitions - 1 || partition.z > numOfPartitions - 1)
         {
             Debug.LogError("Boid is outside of partition range");
             return new Vector3Int(int.MaxValue, int.MaxValue, int.MaxValue);
         }
 
+        if (partition.x < 0 || partition.y < 0 || partition.z < 0)
+        {
+            Debug.LogError("Boid is outside of partition range");
+            return new Vector3Int(int.MaxValue, int.MaxValue, int.MaxValue);
+        }
 
         return partition;
     }
@@ -141,31 +151,42 @@ public class BoidManager : MonoBehaviour
             {
                 for (int z = 0; z < numOfPartitions; z++)
                 {
-                    Gizmos.DrawWireCube(startPos + new Vector3(x * partitionLength + partitionLength / 2, y * partitionLength + partitionLength / 2, z * partitionLength + partitionLength / 2), new Vector3(partitionLength, partitionLength, partitionLength)
+                    Gizmos.DrawWireCube(startPos + new Vector3(x * partitionLength, y * partitionLength, z * partitionLength), new Vector3(partitionLength, partitionLength, partitionLength)
                     );
                 }
             }
         }
 
         Gizmos.color = Color.blue;
-        foreach (Boid item in boids)
+        // foreach (Boid item in boids)
+        // {
+        //     Gizmos.DrawRay(item.lastPos, item.targetVel * 3);
+        // }
+
+        // foreach (Partition item in partitionCollection.partition)
+        // {
+        //     if (item != null && item.adjustedFlockValues != null)
+        //     {
+        //         if (item.adjustedFlockValues.m_pointsToAvoid.Length > 0)
+        //         {
+        //             Gizmos.color = Color.yellow;
+        //             foreach (PointToAvoid element in item.adjustedFlockValues.m_pointsToAvoid)
+        //             {
+        //                 Gizmos.DrawSphere(element.pointPos, 1.0f);
+        //             }
+        //         }
+        //     }
+        // }
+
+        Gizmos.DrawLine(boids[0].lastPos, boids[0].lastPos + (5 * boids[0].vel));
+        Gizmos.color = Color.red;
+        Gizmos.DrawLine(boids[0].lastPos, boids[0].lastPos + (3 * boids[0].targetVel));
+
+        Gizmos.color = Color.yellow;
+        foreach (PointToAvoid element in boids[0].adjustedFlockValues.m_pointsToAvoid)
         {
-            Gizmos.DrawRay(item.lastPos, item.targetVel * 3);
+            Gizmos.DrawSphere(element.pointPos, 1.0f);
         }
 
-        foreach (Partition item in partitionCollection.partition)
-        {
-            if (item != null && item.adjustedFlockValues != null)
-            {
-                if (item.adjustedFlockValues.m_pointsToAvoid.Length > 0)
-                {
-                    Gizmos.color = Color.yellow;
-                    foreach (PointToAvoid element in item.adjustedFlockValues.m_pointsToAvoid)
-                    {
-                        Gizmos.DrawSphere(element.pointPos, 1.0f);
-                    }
-                }
-            }
-        }
     }
 }
