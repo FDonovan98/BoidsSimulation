@@ -17,8 +17,10 @@ internal class PartitionCollection
     {
         this.numOfPartitions = numOfPartitions;
         this.boids = boids;
+        this.boundingPlanePointDensity = boundingPlanePointDensity;
 
         partition = new Partition[numOfPartitions, numOfPartitions, numOfPartitions];
+
 
         UpdateAllPointsToAvoid(pos, partitionLength);
 
@@ -70,17 +72,28 @@ internal class PartitionCollection
     // Add this to the list of points to avoid in the partition data.
     private void UpdateBoundingBox(Vector3 position, float partitionLength, float pointDensity)
     {
-        // Calculate bottom left corner of bounding cube.
-        float offset = (numOfPartitions / 2) * partitionLength - partitionLength / 2;
+        Debug.Log("run");
+        // // Calculate bottom left corner of bounding cube.
+        // float offset = (numOfPartitions / 2) * partitionLength - partitionLength / 2;
 
+        // Vector3 refPos = new Vector3(
+        //     position.x - offset,
+        //     position.y - offset,
+        //     position.z - offset);
         Vector3 refPos = new Vector3(
-            position.x - offset,
-            position.y - offset,
-            position.z - offset);
+            position.x - (numOfPartitions / 2) * partitionLength,
+            position.y - (numOfPartitions / 2) * partitionLength,
+            position.z - (numOfPartitions / 2) * partitionLength);
+
+        refPos -= new Vector3(
+        partitionLength / 2,
+        partitionLength / 2,
+        partitionLength / 2);
 
         float modifiedPartitionLength = partitionLength * pointDensity;
         float partLengthToAdd = partitionLength * (1 / pointDensity);
         int modifiedNumOfPartitions = Mathf.FloorToInt(numOfPartitions * pointDensity);
+        Debug.Log(pointDensity);
 
         for (int x = 0; x < modifiedNumOfPartitions; x++)
         {
@@ -90,6 +103,7 @@ internal class PartitionCollection
                 {
                     if (x == 0 || y == 0 || z == 0 || x == modifiedNumOfPartitions - 1 || y == modifiedNumOfPartitions - 1 || z == modifiedNumOfPartitions - 1)
                     {
+
                         float xLength;
                         xLength = x * partLengthToAdd + partLengthToAdd / 2;
 
@@ -103,6 +117,8 @@ internal class PartitionCollection
                         pos += refPos;
 
                         Vector3Int id = CalculatePartition(pos, partitionLength);
+
+                        Debug.Log(pos + " " + id);
 
                         // if (int.MaxValue - id.x < 1) break;
 
@@ -149,7 +165,6 @@ internal class PartitionCollection
         {
             partition[partitionID.x, partitionID.y, partitionID.z] = new Partition(partitionID, numOfPartitions);
         }
-
         partition[partitionID.x, partitionID.y, partitionID.z].AddPointToAvoid(new PointToAvoid(pos, isPointTerrain));
 
         UpdatePartitionQueue(partitionID);

@@ -231,20 +231,23 @@ public class BoidManager : MonoBehaviour
             Gizmos.DrawSphere(element.pointPos, 1.0f);
         }
 
-        Gizmos.color = Color.green;
-        foreach (Partition item in partitionCollection.partition)
-        {
-            Debug.Log("part");
-            // Partition item = partitionCollection.partition[0, 0, 0];
-            if (item == null) return;
-            if (item.pointsToAvoid == null) return;
-            Debug.Log(item.pointsToAvoid.Count);
-            foreach (PointToAvoid element in item.pointsToAvoid)
-            {
-                Debug.Log("poiont");
-                Gizmos.DrawSphere(element.pointPos, 1.0f);
-            }
-        }
-
+        // Gizmos.color = Color.green;
+        // foreach (Partition item in partitionCollection.partition)
+        // {
+        //     // Partition item = partitionCollection.partition[0, 0, 0];
+        //     if (item != null)
+        //     {
+        //         if (item.pointsToAvoid != null)
+        //         {
+        //             Debug.Log(item.pointsToAvoid.Count);
+        //             foreach (PointToAvoid element in item.pointsToAvoid)
+        //             {
+        //                 Debug.Log("poiont");
+        //                 Debug.Log(item.m_partitionID);
+        //                 Gizmos.DrawSphere(element.pointPos, 1.0f);
+        //             }
+        //         }
+        //     }
+        // }
     }
 }
