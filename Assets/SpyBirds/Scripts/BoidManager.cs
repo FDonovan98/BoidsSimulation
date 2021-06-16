@@ -14,6 +14,8 @@ public class BoidManager : MonoBehaviour
     [SerializeField]
     int numBoidsToSpawn = 100;
     [SerializeField]
+    float spawnRange = 10.0f;
+    [SerializeField]
     GameObject boidPrefab = null;
     Vector3 position;
 
@@ -89,8 +91,7 @@ public class BoidManager : MonoBehaviour
 
     private Vector3 CalculateStartPosition()
     {
-        float startOffset = 10.0f;
-        return new Vector3(Random.Range(-startOffset, startOffset), Random.Range(-startOffset, startOffset), Random.Range(-startOffset, startOffset));
+        return new Vector3(Random.Range(-spawnRange, spawnRange), Random.Range(-spawnRange, spawnRange), Random.Range(-spawnRange, spawnRange));
     }
 
     private void BuildPartitionStructure()
@@ -119,10 +120,10 @@ public class BoidManager : MonoBehaviour
         Vector3 partitionFloat = (position - boidPos) / partitionLength;
         // Recentre so controller position is at the centre of the partitions.
         partitionFloat += new Vector3(numOfPartitions / 2, numOfPartitions / 2, numOfPartitions / 2);
-        Vector3Int partition = Vector3Int.FloorToInt(partitionFloat);
+        Vector3Int partition = Vector3Int.RoundToInt(partitionFloat);
 
         // Check partition value is within allowed range.
-        if (partition.x > numOfPartitions || partition.y > numOfPartitions || partition.z > numOfPartitions)
+        if (partition.x > numOfPartitions - 1 || partition.y > numOfPartitions - 1 || partition.z > numOfPartitions - 1)
         {
             Debug.LogError("Boid is outside of partition range");
             return new Vector3Int(int.MaxValue, int.MaxValue, int.MaxValue);
@@ -181,7 +182,7 @@ public class BoidManager : MonoBehaviour
             {
                 for (int z = 0; z < numOfPartitions; z++)
                 {
-                    Gizmos.DrawWireCube(startPos + new Vector3(x * partitionLength + partitionLength / 2, y * partitionLength + partitionLength / 2, z * partitionLength + partitionLength / 2), new Vector3(partitionLength, partitionLength, partitionLength)
+                    Gizmos.DrawWireCube(startPos + new Vector3(x * partitionLength, y * partitionLength, z * partitionLength), new Vector3(partitionLength, partitionLength, partitionLength)
                     );
                 }
             }
