@@ -178,11 +178,14 @@ public class BoidManager : MonoBehaviour
         //     }
         // }
 
+        if (boids == null) return;
         Gizmos.DrawLine(boids[0].lastPos, boids[0].lastPos + (5 * boids[0].vel));
         Gizmos.color = Color.red;
         Gizmos.DrawLine(boids[0].lastPos, boids[0].lastPos + (3 * boids[0].targetVel));
 
         Gizmos.color = Color.yellow;
+        if (boids[0].adjustedFlockValues == null) return;
+        if (boids[0].adjustedFlockValues.m_pointsToAvoid.Length == 0) return;
         foreach (PointToAvoid element in boids[0].adjustedFlockValues.m_pointsToAvoid)
         {
             Gizmos.DrawSphere(element.pointPos, 1.0f);
