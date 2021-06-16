@@ -5,6 +5,7 @@ using UnityEngine;
 internal class PartitionCollection
 {
     private int numOfPartitions;
+    private float boundingPlanePointDensity;
     // TODO: Make private again.
     public Partition[,,] partition;
 
@@ -12,7 +13,7 @@ internal class PartitionCollection
 
     private List<Vector3Int> partitionsToUpdate = new List<Vector3Int>();
 
-    public PartitionCollection(Vector3 pos, int numOfPartitions, float partitionLength, Boid[] boids)
+    public PartitionCollection(Vector3 pos, int numOfPartitions, float partitionLength, float boundingPlanePointDensity, Boid[] boids)
     {
         this.numOfPartitions = numOfPartitions;
         this.boids = boids;
@@ -51,7 +52,7 @@ internal class PartitionCollection
         UpdatePartitionQueue(newPartition);
     }
 
-    private void UpdatePartitionQueue(Vector3Int partition)
+    public void UpdatePartitionQueue(Vector3Int partition)
     {
         if (!partitionsToUpdate.Contains(partition)) partitionsToUpdate.Add(partition);
     }
@@ -59,7 +60,7 @@ internal class PartitionCollection
     // TODO: Add function to recalculate all locations stored in pointToAvoidDict if the position of the partitioncollection has changed.
     public void UpdateAllPointsToAvoid(Vector3 pos, float partitionLength)
     {
-        UpdateBoundingBox(pos, partitionLength, 2.0f);
+        UpdateBoundingBox(pos, partitionLength, boundingPlanePointDensity);
         // UpdateTerrainColliders(pos);
     }
 
@@ -70,10 +71,12 @@ internal class PartitionCollection
     private void UpdateBoundingBox(Vector3 position, float partitionLength, float pointDensity)
     {
         // Calculate bottom left corner of bounding cube.
+        float offset = (numOfPartitions / 2) * partitionLength - partitionLength / 2;
+
         Vector3 refPos = new Vector3(
-            position.x - (numOfPartitions / 2) * partitionLength,
-            position.y - (numOfPartitions / 2) * partitionLength,
-            position.z - (numOfPartitions / 2) * partitionLength);
+            position.x - offset,
+            position.y - offset,
+            position.z - offset);
 
         float modifiedPartitionLength = partitionLength * pointDensity;
         float partLengthToAdd = partitionLength * (1 / pointDensity);
@@ -100,7 +103,8 @@ internal class PartitionCollection
                         pos += refPos;
 
                         Vector3Int id = CalculatePartition(pos, partitionLength);
-                        if (int.MaxValue - id.x < 1) break;
+
+                        // if (int.MaxValue - id.x < 1) break;
 
                         AddPointToAvoidToPartition(id, pos, true);
                     }
@@ -120,11 +124,11 @@ internal class PartitionCollection
         // Recentre so controller position is at the centre of the partitions.
         partitionFloat += new Vector3(numOfPartitions / 2, numOfPartitions / 2, numOfPartitions / 2);
 
-        Vector3Int partition = Vector3Int.CeilToInt(partitionFloat);
+        Vector3Int partition = Vector3Int.RoundToInt(partitionFloat);
 
         // Check partition value is within allowed range.
         // +1 & -1 as points are going to be right on the edge os otherwise would always "return out of partition" error.
-        if (partition.x >= numOfPartitions + 1 || partition.y >= numOfPartitions + 1 || partition.z >= numOfPartitions + 1)
+        if (partition.x >= numOfPartitions || partition.y >= numOfPartitions || partition.z >= numOfPartitions)
         {
             Debug.LogError("Pos is outside of partition range");
             return new Vector3Int(int.MaxValue, int.MaxValue, int.MaxValue);
@@ -165,13 +169,18 @@ internal class PartitionCollection
         // Update initial flock values.
         for (int i = 0; i < partitionsToUpdate.Count; i++)
         {
+            if (partition[partitionsToUpdate[i].x, partitionsToUpdate[i].y, partitionsToUpdate[i].z] == null)
+            {
+                partition[partitionsToUpdate[i].x, partitionsToUpdate[i].y, partitionsToUpdate[i].z] = new Partition(partitionsToUpdate[i], numOfPartitions);
+            }
+
             partition[partitionsToUpdate[i].x, partitionsToUpdate[i].y, partitionsToUpdate[i].z].UpdateFlockValues(boids);
         }
 
+        // Update flock values taking into account neighbouring partitions.
         for (int i = 0; i < partitionsToUpdate.Count; i++)
         {
             Partition tempData = partition[partitionsToUpdate[i].x, partitionsToUpdate[i].y, partitionsToUpdate[i].z];
-            // Update flock values taking into account neighbouring partitions.
             tempData.CalculateAdjustedFlockValues(partition);
 
             // Update boid target velocities.
@@ -194,7 +203,7 @@ public class Partition
     public Vector3Int m_partitionID;
     private Vector3Int[] neighbouringIDs;
     // Location, isLocationRelative.
-    private List<PointToAvoid> pointsToAvoid = new List<PointToAvoid>();
+    public List<PointToAvoid> pointsToAvoid = new List<PointToAvoid>();
 
     public Partition(int boidID, Vector3Int partitionID, int numPartitions)
     {
@@ -309,9 +318,10 @@ public class Partition
     {
         for (int i = 0; i < pointsToAvoid.Count; i++)
         {
+            // Stops the same point being added repeatedly.
             if (Vector3.Distance(pointsToAvoid[i].pointPos, pointToAvoid.pointPos) < 1)
             {
-                // isPointTerrain needs to be checked if point does exist due to terrain being reweighted by boids.
+                // isPointTerrain needs to be checked if point does exist due to terrain being weighted differently to other boids.
                 if (pointToAvoid.isPointTerrain && !pointsToAvoid[i].isPointTerrain)
                 {
                     pointsToAvoid[i] = pointToAvoid;

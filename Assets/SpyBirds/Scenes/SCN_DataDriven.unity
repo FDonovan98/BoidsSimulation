@@ -328,19 +328,23 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   partitionLength: 20
-  numOfPartitions: 70
-  numBoidsToSpawn: 2000
+  numOfPartitions: 5
+  boundingPlanePointDensity: 1
+  numBoidsToSpawn: 1
+  spawnRange: 10
   boidPrefab: {fileID: 7212746578717795957, guid: 4fffa70e072d6ec4db09c2fac7d6aa6c,
     type: 3}
-  maxSpeed: 20
-  turnRate: 60
-  acceleration: 2
-  target: {fileID: 0}
-  separationDistance: 6
-  targetWeight: 0.2
-  separationWeight: 0.355
-  cohesionWeight: 0.64
-  alignmentWeight: 0.244
+  boidVariables:
+    maxSpeed: 4
+    turnRate: 60
+    acceleration: 2
+    target: {fileID: 0}
+    separationDistance: 1
+    targetWeight: 1
+    separationWeight: 1
+    avoidTerrainWeight: 1
+    cohesionWeight: 1
+    alignmentWeight: 1
 --- !u!4 &1283690342
 Transform:
   m_ObjectHideFlags: 0

@@ -12,6 +12,8 @@ public class BoidManager : MonoBehaviour
     [SerializeField]
     int numOfPartitions = 70;
     [SerializeField]
+    public float boundingPlanePointDensity = 1.0f;
+    [SerializeField]
     int numBoidsToSpawn = 100;
     [SerializeField]
     float spawnRange = 10.0f;
@@ -33,6 +35,19 @@ public class BoidManager : MonoBehaviour
         position = transform.position;
         BuildAllBoids();
         BuildPartitionStructure();
+
+        // for (int i = 0; i < numOfPartitions; i++)
+        // {
+        //     for (int j = 0; i < numOfPartitions; i++)
+        //     {
+        //         for (int k = 0; i < numOfPartitions; i++)
+        //         {
+        //             partitionCollection.UpdatePartitionQueue(new Vector3Int(i, j, k));
+        //         }
+        //     }
+        // }
+        // partitionCollection.UpdatePartitions();
+        // partitionCollection.UpdateAllPointsToAvoid(position, partitionLength);
     }
 
     private void BuildAllBoids()
@@ -66,7 +81,8 @@ public class BoidManager : MonoBehaviour
 
     private void BuildPartitionStructure()
     {
-        partitionCollection = new PartitionCollection(position, numOfPartitions, partitionLength, boids);
+        Debug.Log("build Part");
+        partitionCollection = new PartitionCollection(position, numOfPartitions, partitionLength, boundingPlanePointDensity, boids);
     }
 
     private Vector3 CalculateStartVel()
@@ -85,7 +101,7 @@ public class BoidManager : MonoBehaviour
         Vector3Int partition = Vector3Int.RoundToInt(partitionFloat);
 
         // Check partition value is within allowed range.
-        if (partition.x > numOfPartitions - 1 || partition.y > numOfPartitions - 1 || partition.z > numOfPartitions - 1)
+        if (partition.x >= numOfPartitions || partition.y >= numOfPartitions || partition.z >= numOfPartitions)
         {
             Debug.LogError("Boid is outside of partition range");
             return new Vector3Int(int.MaxValue, int.MaxValue, int.MaxValue);
@@ -142,41 +158,65 @@ public class BoidManager : MonoBehaviour
 
     private void OnDrawGizmosSelected()
     {
+        Vector3 refPos = new Vector3(
+            position.x - (numOfPartitions / 2) * partitionLength,
+            position.y - (numOfPartitions / 2) * partitionLength,
+            position.z - (numOfPartitions / 2) * partitionLength);
+
         Gizmos.color = new Color(1.0f, 0.0f, 0.0f, 0.1f);
 
-        Vector3 startPos = position - new Vector3(numOfPartitions / 2 * partitionLength, numOfPartitions / 2 * partitionLength, numOfPartitions / 2 * partitionLength);
         for (int x = 0; x < numOfPartitions; x++)
         {
             for (int y = 0; y < numOfPartitions; y++)
             {
                 for (int z = 0; z < numOfPartitions; z++)
                 {
-                    Gizmos.DrawWireCube(startPos + new Vector3(x * partitionLength, y * partitionLength, z * partitionLength), new Vector3(partitionLength, partitionLength, partitionLength)
+                    Gizmos.DrawWireCube(refPos + new Vector3(x * partitionLength, y * partitionLength, z * partitionLength), new Vector3(partitionLength, partitionLength, partitionLength)
                     );
                 }
             }
         }
 
         Gizmos.color = Color.blue;
-        // foreach (Boid item in boids)
-        // {
-        //     Gizmos.DrawRay(item.lastPos, item.targetVel * 3);
-        // }
 
-        // foreach (Partition item in partitionCollection.partition)
-        // {
-        //     if (item != null && item.adjustedFlockValues != null)
-        //     {
-        //         if (item.adjustedFlockValues.m_pointsToAvoid.Length > 0)
-        //         {
-        //             Gizmos.color = Color.yellow;
-        //             foreach (PointToAvoid element in item.adjustedFlockValues.m_pointsToAvoid)
-        //             {
-        //                 Gizmos.DrawSphere(element.pointPos, 1.0f);
-        //             }
-        //         }
-        //     }
-        // }
+        refPos -= new Vector3(
+            partitionLength / 2,
+            partitionLength / 2,
+            partitionLength / 2);
+
+
+        float modifiedPartitionLength = partitionLength * boundingPlanePointDensity;
+        float partLengthToAdd = partitionLength * (1 / boundingPlanePointDensity);
+        int modifiedNumOfPartitions = Mathf.FloorToInt(numOfPartitions * boundingPlanePointDensity);
+
+        for (int x = 0; x < modifiedNumOfPartitions; x++)
+        {
+            for (int y = 0; y < modifiedNumOfPartitions; y++)
+            {
+                for (int z = 0; z < modifiedNumOfPartitions; z++)
+                {
+                    if (x == 0 || y == 0 || z == 0 || x == modifiedNumOfPartitions - 1 || y == modifiedNumOfPartitions - 1 || z == modifiedNumOfPartitions - 1)
+                    {
+                        float xLength;
+                        xLength = x * partLengthToAdd + partLengthToAdd / 2;
+
+                        float yLength;
+                        yLength = y * partLengthToAdd + partLengthToAdd / 2;
+
+                        float zLength;
+                        zLength = z * partLengthToAdd + partLengthToAdd / 2;
+
+                        Vector3 pos = new Vector3(xLength, yLength, zLength);
+                        pos += refPos;
+
+                        // Vector3Int id = CalculatePartition(pos, partitionLength);
+                        // if (int.MaxValue - id.x < 1) break;
+
+                        Gizmos.DrawSphere(pos, 1.0f);
+                    }
+                }
+            }
+        }
 
         if (boids == null) return;
         Gizmos.DrawLine(boids[0].lastPos, boids[0].lastPos + (5 * boids[0].vel));
@@ -189,6 +229,21 @@ public class BoidManager : MonoBehaviour
         foreach (PointToAvoid element in boids[0].adjustedFlockValues.m_pointsToAvoid)
         {
             Gizmos.DrawSphere(element.pointPos, 1.0f);
+        }
+
+        Gizmos.color = Color.green;
+        foreach (Partition item in partitionCollection.partition)
+        {
+            Debug.Log("part");
+            // Partition item = partitionCollection.partition[0, 0, 0];
+            if (item == null) return;
+            if (item.pointsToAvoid == null) return;
+            Debug.Log(item.pointsToAvoid.Count);
+            foreach (PointToAvoid element in item.pointsToAvoid)
+            {
+                Debug.Log("poiont");
+                Gizmos.DrawSphere(element.pointPos, 1.0f);
+            }
         }
 
     }
