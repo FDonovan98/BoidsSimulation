@@ -158,78 +158,82 @@ public class BoidManager : MonoBehaviour
 
     private void OnDrawGizmosSelected()
     {
-        Vector3 refPos = new Vector3(
-            position.x - (numOfPartitions / 2) * partitionLength,
-            position.y - (numOfPartitions / 2) * partitionLength,
-            position.z - (numOfPartitions / 2) * partitionLength);
+        // Vector3 refPos = new Vector3(
+        //     position.x - (numOfPartitions / 2) * partitionLength,
+        //     position.y - (numOfPartitions / 2) * partitionLength,
+        //     position.z - (numOfPartitions / 2) * partitionLength);
 
         Gizmos.color = new Color(1.0f, 0.0f, 0.0f, 0.1f);
 
-        for (int x = 0; x < numOfPartitions; x++)
-        {
-            for (int y = 0; y < numOfPartitions; y++)
-            {
-                for (int z = 0; z < numOfPartitions; z++)
-                {
-                    Gizmos.DrawWireCube(refPos + new Vector3(x * partitionLength, y * partitionLength, z * partitionLength), new Vector3(partitionLength, partitionLength, partitionLength)
-                    );
-                }
-            }
-        }
+        // Draw individual partitions.
+        // for (int x = 0; x < numOfPartitions; x++)
+        // {
+        //     for (int y = 0; y < numOfPartitions; y++)
+        //     {
+        //         for (int z = 0; z < numOfPartitions; z++)
+        //         {
+        //             Gizmos.DrawWireCube(refPos + new Vector3(x * partitionLength, y * partitionLength, z * partitionLength), new Vector3(partitionLength, partitionLength, partitionLength)
+        //             );
+        //         }
+        //     }
+        // }
 
-        Gizmos.color = Color.blue;
+        // Draw partition collection extent.
+        Gizmos.DrawCube(position, Vector3.one * partitionLength * numOfPartitions);
 
-        refPos -= new Vector3(
-            partitionLength / 2,
-            partitionLength / 2,
-            partitionLength / 2);
+        // Gizmos.color = Color.blue;
+
+        // refPos -= new Vector3(
+        //     partitionLength / 2,
+        //     partitionLength / 2,
+        //     partitionLength / 2);
 
 
-        float modifiedPartitionLength = partitionLength * boundingPlanePointDensity;
-        float partLengthToAdd = partitionLength * (1 / boundingPlanePointDensity);
-        int modifiedNumOfPartitions = Mathf.FloorToInt(numOfPartitions * boundingPlanePointDensity);
+        // float modifiedPartitionLength = partitionLength * boundingPlanePointDensity;
+        // float partLengthToAdd = partitionLength * (1 / boundingPlanePointDensity);
+        // int modifiedNumOfPartitions = Mathf.FloorToInt(numOfPartitions * boundingPlanePointDensity);
 
-        for (int x = 0; x < modifiedNumOfPartitions; x++)
-        {
-            for (int y = 0; y < modifiedNumOfPartitions; y++)
-            {
-                for (int z = 0; z < modifiedNumOfPartitions; z++)
-                {
-                    if (x == 0 || y == 0 || z == 0 || x == modifiedNumOfPartitions - 1 || y == modifiedNumOfPartitions - 1 || z == modifiedNumOfPartitions - 1)
-                    {
-                        float xLength;
-                        xLength = x * partLengthToAdd + partLengthToAdd / 2;
+        // for (int x = 0; x < modifiedNumOfPartitions; x++)
+        // {
+        //     for (int y = 0; y < modifiedNumOfPartitions; y++)
+        //     {
+        //         for (int z = 0; z < modifiedNumOfPartitions; z++)
+        //         {
+        //             if (x == 0 || y == 0 || z == 0 || x == modifiedNumOfPartitions - 1 || y == modifiedNumOfPartitions - 1 || z == modifiedNumOfPartitions - 1)
+        //             {
+        //                 float xLength;
+        //                 xLength = x * partLengthToAdd + partLengthToAdd / 2;
 
-                        float yLength;
-                        yLength = y * partLengthToAdd + partLengthToAdd / 2;
+        //                 float yLength;
+        //                 yLength = y * partLengthToAdd + partLengthToAdd / 2;
 
-                        float zLength;
-                        zLength = z * partLengthToAdd + partLengthToAdd / 2;
+        //                 float zLength;
+        //                 zLength = z * partLengthToAdd + partLengthToAdd / 2;
 
-                        Vector3 pos = new Vector3(xLength, yLength, zLength);
-                        pos += refPos;
+        //                 Vector3 pos = new Vector3(xLength, yLength, zLength);
+        //                 pos += refPos;
 
-                        // Vector3Int id = CalculatePartition(pos, partitionLength);
-                        // if (int.MaxValue - id.x < 1) break;
+        //                 // Vector3Int id = CalculatePartition(pos, partitionLength);
+        //                 // if (int.MaxValue - id.x < 1) break;
 
-                        Gizmos.DrawSphere(pos, 1.0f);
-                    }
-                }
-            }
-        }
+        //                 Gizmos.DrawSphere(pos, 1.0f);
+        //             }
+        //         }
+        //     }
+        // }
 
-        if (boids == null) return;
-        Gizmos.DrawLine(boids[0].lastPos, boids[0].lastPos + (5 * boids[0].vel));
-        Gizmos.color = Color.red;
-        Gizmos.DrawLine(boids[0].lastPos, boids[0].lastPos + (3 * boids[0].targetVel));
+        // if (boids == null) return;
+        // Gizmos.DrawLine(boids[0].lastPos, boids[0].lastPos + (5 * boids[0].vel));
+        // Gizmos.color = Color.red;
+        // Gizmos.DrawLine(boids[0].lastPos, boids[0].lastPos + (3 * boids[0].targetVel));
 
-        Gizmos.color = Color.yellow;
-        if (boids[0].adjustedFlockValues == null) return;
-        if (boids[0].adjustedFlockValues.m_pointsToAvoid.Length == 0) return;
-        foreach (PointToAvoid element in boids[0].adjustedFlockValues.m_pointsToAvoid)
-        {
-            Gizmos.DrawSphere(element.pointPos, 1.0f);
-        }
+        // Gizmos.color = Color.yellow;
+        // if (boids[0].adjustedFlockValues == null) return;
+        // if (boids[0].adjustedFlockValues.m_pointsToAvoid.Length == 0) return;
+        // foreach (PointToAvoid element in boids[0].adjustedFlockValues.m_pointsToAvoid)
+        // {
+        //     Gizmos.DrawSphere(element.pointPos, 1.0f);
+        // }
 
         // Gizmos.color = Color.green;
         // foreach (Partition item in partitionCollection.partition)
