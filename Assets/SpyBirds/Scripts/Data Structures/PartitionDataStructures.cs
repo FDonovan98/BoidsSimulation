@@ -83,7 +83,6 @@ internal class PartitionCollection
         float modifiedPartitionLength = partitionLength * pointDensity;
         float partLengthToAdd = partitionLength * (1 / pointDensity);
         int modifiedNumOfPartitions = Mathf.FloorToInt(numOfPartitions * pointDensity);
-        Debug.Log(pointDensity);
 
         for (int x = 0; x < modifiedNumOfPartitions; x++)
         {
@@ -107,8 +106,6 @@ internal class PartitionCollection
                         pos += refPos;
 
                         Vector3Int id = CalculatePartition(pos, partitionLength);
-
-                        Debug.Log(pos + " " + id);
 
                         AddPointToAvoidToPartition(id, pos, true);
                     }
@@ -146,6 +143,7 @@ internal class PartitionCollection
     // Ensures partition exists before trying to write to it.
     private void AddPointToAvoidToPartition(Vector3Int partitionID, Vector3 pos, bool isPointTerrain)
     {
+        if (partitionID.x == int.MaxValue) return;
         if (partition[partitionID.x, partitionID.y, partitionID.z] == null)
         {
             partition[partitionID.x, partitionID.y, partitionID.z] = new Partition(partitionID, numOfPartitions);
@@ -225,32 +223,74 @@ public class Partition
     private void CalculateNeighbours(Vector3Int partitionID, int numPartitions)
     {
         List<Vector3Int> neighbours = new List<Vector3Int>();
-        if (partitionID.x != 0)
+
+        for (int i = -1; i <= 1; i++)
         {
-            neighbours.Add(new Vector3Int(partitionID.x - 1, partitionID.y, partitionID.z));
-        }
-        if (partitionID.x < numPartitions - 1)
-        {
-            neighbours.Add(new Vector3Int(partitionID.x + 1, partitionID.y, partitionID.z));
-        }
-        if (partitionID.y != 0)
-        {
-            neighbours.Add(new Vector3Int(partitionID.x, partitionID.y - 1, partitionID.z));
-        }
-        if (partitionID.y < numPartitions - 1)
-        {
-            neighbours.Add(new Vector3Int(partitionID.x, partitionID.y + 1, partitionID.z));
-        }
-        if (partitionID.z != 0)
-        {
-            neighbours.Add(new Vector3Int(partitionID.x, partitionID.y, partitionID.z - 1));
-        }
-        if (partitionID.z < numPartitions - 1)
-        {
-            neighbours.Add(new Vector3Int(partitionID.x, partitionID.y, partitionID.z + 1));
+            int newX = partitionID.x + i;
+            if (newX >= 0 && newX < numPartitions)
+            {
+                // Add cells along the x line.
+                if (i != 0)
+                {
+                    neighbours.Add(new Vector3Int(partitionID.x + i, partitionID.y, partitionID.z));
+                }
+                // Add cells surrounding the x line.
+                neighbours.AddRange(CalculateNeighboursInXPlane(new Vector3Int(partitionID.x + i, partitionID.y, partitionID.z), numPartitions));
+            }
         }
 
+
+        // if (partitionID.x != 0)
+        // {
+        //     neighbours.Add(new Vector3Int(partitionID.x - 1, partitionID.y, partitionID.z));
+        // }
+        // if (partitionID.x < numPartitions - 1)
+        // {
+        //     neighbours.Add(new Vector3Int(partitionID.x + 1, partitionID.y, partitionID.z));
+        // }
+        // if (partitionID.y != 0)
+        // {
+        //     neighbours.Add(new Vector3Int(partitionID.x, partitionID.y - 1, partitionID.z));
+        // }
+        // if (partitionID.y < numPartitions - 1)
+        // {
+        //     neighbours.Add(new Vector3Int(partitionID.x, partitionID.y + 1, partitionID.z));
+        // }
+        // if (partitionID.z != 0)
+        // {
+        //     neighbours.Add(new Vector3Int(partitionID.x, partitionID.y, partitionID.z - 1));
+        // }
+        // if (partitionID.z < numPartitions - 1)
+        // {
+        //     neighbours.Add(new Vector3Int(partitionID.x, partitionID.y, partitionID.z + 1));
+        // }
+
         neighbouringIDs = neighbours.ToArray();
+    }
+
+    // Gets all neighbours to the cell in the X plane.
+    private IEnumerable<Vector3Int> CalculateNeighboursInXPlane(Vector3Int pos, int numPartitions)
+    {
+        List<Vector3Int> list = new List<Vector3Int>();
+        for (int yOffset = -1; yOffset <= 1; yOffset++)
+        {
+            for (int zOffset = -1; zOffset <= 1; zOffset++)
+            {
+                if (yOffset != 0 || zOffset != 0)
+                {
+                    int newY = pos.y + yOffset;
+                    if (newY >= 0 && newY < numPartitions)
+                    {
+                        int newZ = pos.z + zOffset;
+                        if (newZ >= 0 && newZ < numPartitions)
+                        {
+                            list.Add(new Vector3Int(pos.x, newY, newZ));
+                        }
+                    }
+                }
+            }
+        }
+        return list;
     }
 
     // Adjusted flock values take into account the neighbouring partitions.

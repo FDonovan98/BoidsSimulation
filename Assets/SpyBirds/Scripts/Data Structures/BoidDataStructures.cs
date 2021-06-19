@@ -85,7 +85,10 @@ public class Boid
 
     public void RecalculateVelocity(float timeModifier)
     {
-        vel = Vector3.RotateTowards(vel, targetVel, boidVariables.turnRate * Mathf.Deg2Rad * timeModifier, boidVariables.acceleration * timeModifier);
+        Vector3 newTargetVel = targetVel + AvoidTerrain();
+        newTargetVel = Vector3.ClampMagnitude(newTargetVel, boidVariables.maxSpeed);
+
+        vel = Vector3.RotateTowards(vel, newTargetVel, boidVariables.turnRate * Mathf.Deg2Rad * timeModifier, boidVariables.acceleration * timeModifier);
     }
 
     internal void MoveBoid(float timeModifier)
@@ -113,17 +116,19 @@ public class Boid
         targetVel += Cohesion(partitionValues.m_avgPos);
 
         targetVel += Separation();
-        targetVel += AvoidTerrain();
+        // targetVel += AvoidTerrain();
 
         targetVel += Alignment(partitionValues.m_avgVel);
 
-        targetVel = Vector3.ClampMagnitude(targetVel, boidVariables.maxSpeed);
+        // targetVel = Vector3.ClampMagnitude(targetVel, boidVariables.maxSpeed);
     }
 
-    private Vector3 AvoidTerrain()
+    // TODO: Only public for debug in BoidManager.
+    public Vector3 AvoidTerrain()
     {
         Vector3 avoidTerrainVector = new Vector3();
 
+        if (adjustedFlockValues == null) return Vector3.zero;
         if (adjustedFlockValues.m_pointsToAvoid == null) return Vector3.zero;
 
         for (int i = 0; i < adjustedFlockValues.m_pointsToAvoid.Length; i++)
@@ -134,7 +139,6 @@ public class Boid
             }
         }
 
-        Debug.DrawLine(lastPos, lastPos + avoidTerrainVector * boidVariables.avoidTerrainWeight);
         return avoidTerrainVector * boidVariables.avoidTerrainWeight;
     }
 
@@ -179,12 +183,12 @@ public class Boid
 
         if (ignoreSepDist)
         {
-            return (lastPos - posToAvoid.pointPos).normalized / dist;
+            return (lastPos - posToAvoid.pointPos).normalized / Mathf.Pow(dist / boidVariables.separationDistance, 2);
         }
 
         if (dist < boidVariables.separationDistance && dist != 0)
         {
-            return (lastPos - posToAvoid.pointPos).normalized / Mathf.Pow(dist, 2);
+            return (lastPos - posToAvoid.pointPos).normalized / Mathf.Pow(dist / boidVariables.separationDistance, 2);
         }
 
         return Vector3.zero;

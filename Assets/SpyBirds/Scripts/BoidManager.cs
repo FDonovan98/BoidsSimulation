@@ -50,7 +50,6 @@ public class BoidManager : MonoBehaviour
 
         for (int i = 0; i < boids.Length; i++)
         {
-            Debug.Log("Place");
             Vector3 startPos = CalculateStartPosition();
 
             boids[i] = new Boid(i, boidObjects[i],
@@ -68,7 +67,6 @@ public class BoidManager : MonoBehaviour
 
     private void BuildPartitionStructure()
     {
-        Debug.Log("build Part");
         partitionCollection = new PartitionCollection(position, numOfPartitions, partitionLength, boundingPlanePointDensity, boids);
     }
 
@@ -146,28 +144,31 @@ public class BoidManager : MonoBehaviour
 
     private void OnDrawGizmosSelected()
     {
-        // Vector3 refPos = new Vector3(
-        //     position.x - (numOfPartitions / 2) * partitionLength,
-        //     position.y - (numOfPartitions / 2) * partitionLength,
-        //     position.z - (numOfPartitions / 2) * partitionLength);
+        Gizmos.color = Color.black;
+        Gizmos.DrawWireSphere(boids[0].lastPos, 6);
 
-        Gizmos.color = new Color(1.0f, 0.0f, 0.0f, 0.1f);
+        Vector3 refPos = new Vector3(
+            position.x - (numOfPartitions / 2) * partitionLength,
+            position.y - (numOfPartitions / 2) * partitionLength,
+            position.z - (numOfPartitions / 2) * partitionLength);
+
+        Gizmos.color = Color.red;
 
         // Draw individual partitions.
-        // for (int x = 0; x < numOfPartitions; x++)
-        // {
-        //     for (int y = 0; y < numOfPartitions; y++)
-        //     {
-        //         for (int z = 0; z < numOfPartitions; z++)
-        //         {
-        //             Gizmos.DrawWireCube(refPos + new Vector3(x * partitionLength, y * partitionLength, z * partitionLength), new Vector3(partitionLength, partitionLength, partitionLength)
-        //             );
-        //         }
-        //     }
-        // }
+        for (int x = 0; x < numOfPartitions; x++)
+        {
+            for (int y = 0; y < numOfPartitions; y++)
+            {
+                for (int z = 0; z < numOfPartitions; z++)
+                {
+                    Gizmos.DrawWireCube(refPos + new Vector3(x * partitionLength, y * partitionLength, z * partitionLength), new Vector3(partitionLength, partitionLength, partitionLength)
+                    );
+                }
+            }
+        }
 
         // Draw partition collection extent.
-        Gizmos.DrawCube(position, Vector3.one * partitionLength * numOfPartitions);
+        Gizmos.DrawWireCube(position, Vector3.one * partitionLength * numOfPartitions);
 
         // Gizmos.color = Color.blue;
 
@@ -210,36 +211,49 @@ public class BoidManager : MonoBehaviour
         //     }
         // }
 
-        // if (boids == null) return;
-        // Gizmos.DrawLine(boids[0].lastPos, boids[0].lastPos + (5 * boids[0].vel));
-        // Gizmos.color = Color.red;
-        // Gizmos.DrawLine(boids[0].lastPos, boids[0].lastPos + (3 * boids[0].targetVel));
+        Gizmos.color = Color.green;
+        if (partitionCollection != null)
+        {
+            foreach (Partition item in partitionCollection.partition)
+            {
+                // Partition item = partitionCollection.partition[0, 0, 0];
+                if (item != null)
+                {
+                    if (item.pointsToAvoid != null)
+                    {
+                        foreach (PointToAvoid element in item.pointsToAvoid)
+                        {
+                            Gizmos.DrawSphere(element.pointPos, 1.0f);
+                        }
+                    }
+                }
+            }
+        }
 
-        // Gizmos.color = Color.yellow;
-        // if (boids[0].adjustedFlockValues == null) return;
-        // if (boids[0].adjustedFlockValues.m_pointsToAvoid.Length == 0) return;
-        // foreach (PointToAvoid element in boids[0].adjustedFlockValues.m_pointsToAvoid)
-        // {
-        //     Gizmos.DrawSphere(element.pointPos, 1.0f);
-        // }
+        for (int i = 0; i < 10; i++)
+        {
+            if (boids == null) break;
+            if (i >= boids.Length) break;
+            Gizmos.color = Color.green;
+            Gizmos.DrawLine(boids[i].lastPos, boids[i].lastPos + (3 * boids[i].vel));
+            Gizmos.color = Color.red;
+            Gizmos.DrawLine(boids[i].lastPos, boids[i].lastPos + (3 * boids[i].targetVel));
+            Gizmos.color = Color.blue;
+            Gizmos.DrawLine(boids[i].lastPos, boids[i].lastPos + (3 * boids[i].targetVel + boids[i].AvoidTerrain()));
 
-        // Gizmos.color = Color.green;
-        // foreach (Partition item in partitionCollection.partition)
-        // {
-        //     // Partition item = partitionCollection.partition[0, 0, 0];
-        //     if (item != null)
-        //     {
-        //         if (item.pointsToAvoid != null)
-        //         {
-        //             Debug.Log(item.pointsToAvoid.Count);
-        //             foreach (PointToAvoid element in item.pointsToAvoid)
-        //             {
-        //                 Debug.Log("poiont");
-        //                 Debug.Log(item.m_partitionID);
-        //                 Gizmos.DrawSphere(element.pointPos, 1.0f);
-        //             }
-        //         }
-        //     }
-        // }
+
+            Gizmos.color = Color.yellow;
+            if (boids[i].adjustedFlockValues != null)
+            {
+                if (boids[i].adjustedFlockValues.m_pointsToAvoid.Length != 0)
+                {
+                    foreach (PointToAvoid element in boids[i].adjustedFlockValues.m_pointsToAvoid)
+                    {
+                        if (element.isPointTerrain) Gizmos.DrawSphere(element.pointPos, 1.0f);
+                    }
+                }
+            }
+        }
+
     }
 }
