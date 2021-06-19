@@ -59,27 +59,17 @@ internal class PartitionCollection
         if (!partitionsToUpdate.Contains(partition)) partitionsToUpdate.Add(partition);
     }
 
-    // TODO: Add function to recalculate all locations stored in pointToAvoidDict if the position of the partitioncollection has changed.
+    // TODO: All existing positions should be cleared, before the new positions are added. Currently if the Manager is moved the new collision points are added, rather than replacing the existing collider points.
     public void UpdateAllPointsToAvoid(Vector3 pos, float partitionLength)
     {
         UpdateBoundingBox(pos, partitionLength, boundingPlanePointDensity);
         // UpdateTerrainColliders(pos);
     }
 
-    // TODO:
-    // Calculate any external faces for each partition.
-    // Calculate coords in world space of the centre of the face.
-    // Add this to the list of points to avoid in the partition data.
     private void UpdateBoundingBox(Vector3 position, float partitionLength, float pointDensity)
     {
-        Debug.Log("run");
-        // // Calculate bottom left corner of bounding cube.
-        // float offset = (numOfPartitions / 2) * partitionLength - partitionLength / 2;
+        // Calculate bottom left corner of bounding cube.
 
-        // Vector3 refPos = new Vector3(
-        //     position.x - offset,
-        //     position.y - offset,
-        //     position.z - offset);
         Vector3 refPos = new Vector3(
             position.x - (numOfPartitions / 2) * partitionLength,
             position.y - (numOfPartitions / 2) * partitionLength,
@@ -120,8 +110,6 @@ internal class PartitionCollection
 
                         Debug.Log(pos + " " + id);
 
-                        // if (int.MaxValue - id.x < 1) break;
-
                         AddPointToAvoidToPartition(id, pos, true);
                     }
                 }
@@ -130,9 +118,7 @@ internal class PartitionCollection
 
     }
 
-    // Modified version of function in BoidManager.cs.
-    // That function could be modified to be static rather than repeat code.
-    // Lacks offsetting by position as origin is always 0,0,0 here.
+    // TODO: Consolidate this and version in BoidManager.cs so it is not a repeated function.
     private Vector3Int CalculatePartition(Vector3 boidPos, float partitionLength)
     {
         // Calculate partition number relative to controller position.
@@ -143,7 +129,6 @@ internal class PartitionCollection
         Vector3Int partition = Vector3Int.RoundToInt(partitionFloat);
 
         // Check partition value is within allowed range.
-        // +1 & -1 as points are going to be right on the edge os otherwise would always "return out of partition" error.
         if (partition.x >= numOfPartitions || partition.y >= numOfPartitions || partition.z >= numOfPartitions)
         {
             Debug.LogError("Pos is outside of partition range");

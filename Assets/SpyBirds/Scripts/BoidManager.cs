@@ -35,19 +35,6 @@ public class BoidManager : MonoBehaviour
         position = transform.position;
         BuildAllBoids();
         BuildPartitionStructure();
-
-        // for (int i = 0; i < numOfPartitions; i++)
-        // {
-        //     for (int j = 0; i < numOfPartitions; i++)
-        //     {
-        //         for (int k = 0; i < numOfPartitions; i++)
-        //         {
-        //             partitionCollection.UpdatePartitionQueue(new Vector3Int(i, j, k));
-        //         }
-        //     }
-        // }
-        // partitionCollection.UpdatePartitions();
-        // partitionCollection.UpdateAllPointsToAvoid(position, partitionLength);
     }
 
     private void BuildAllBoids()
@@ -95,6 +82,7 @@ public class BoidManager : MonoBehaviour
     {
         // Calculate partition number relative to controller position.
         Vector3 partitionFloat = (position - boidPos) / partitionLength;
+
         // Recentre so controller position is at the centre of the partitions.
         partitionFloat += new Vector3(numOfPartitions / 2, numOfPartitions / 2, numOfPartitions / 2);
 
@@ -118,8 +106,8 @@ public class BoidManager : MonoBehaviour
 
     private void Update()
     {
-        // Updates position only if it ahs actually changed.
-        // Value of 1.0f is arbitary.
+        // Updates position only if it has actually changed.
+        // Value of 1.0f is arbitary, it is just checking if the manager has moved.
         if (Vector3.Distance(position, transform.position) > 1.0f)
         {
             position = transform.position;
